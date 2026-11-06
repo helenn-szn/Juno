@@ -115,8 +115,8 @@ export function StudyAgent({ course, stuckOn }: { course: string; stuckOn: strin
   }
 
   return (
-    <div className="on-dark flex flex-col gap-3.5 rounded-[20px] bg-green p-4.5">
-      <div role="log" aria-live="polite" aria-label="Study agent" className="flex max-h-[28rem] min-h-40 flex-col gap-3 overflow-y-auto overscroll-contain">
+    <div className="flex min-h-0 flex-1 flex-col gap-3.5">
+      <div role="log" aria-live="polite" aria-label="Study agent" className="flex min-h-40 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain">
         <p className={bubble}>{GREETING}</p>
         {messages.map((message) =>
           message.role === "user" ? (

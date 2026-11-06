@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { SidebarLinks, TabBar } from "@/components/app-nav";
 import { CoinFan } from "@/components/coin-fan";
 import { JunoChat } from "@/components/juno-chat";
@@ -14,7 +15,9 @@ export default function AppLayout({ children }: LayoutProps<"/app">) {
           <CoinFan theme="light" className="h-7 w-10" />
           <span className="text-wordmark-sm text-text-accent">juno</span>
         </Link>
-        <SidebarLinks />
+        <Suspense>
+          <SidebarLinks />
+        </Suspense>
         <StallionCard className="mt-auto" />
       </aside>
 
@@ -23,8 +26,10 @@ export default function AppLayout({ children }: LayoutProps<"/app">) {
         <StallionCard className="mx-6 mb-6 lg:hidden" />
       </main>
 
-      <TabBar />
-      <JunoChat />
+      <Suspense>
+        <TabBar />
+        <JunoChat />
+      </Suspense>
     </div>
   );
 }

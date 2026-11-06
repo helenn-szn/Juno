@@ -1,9 +1,11 @@
 "use server";
 // Everything a learner does that changes data: create account, log in,
 // log out, start a course. Each action checks the session itself.
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
-import { findCourse } from "@/lib/courses";
+import { issueCertificate, recordOnStellar } from "@/lib/certificates";
+import { findCourse, requiredLessons } from "@/lib/courses";
 import { currentUser, endSession, startSession } from "@/lib/session";
 import { checkPassword, createUser, findUserByEmail, setUpWallet, updateUser } from "@/lib/users";
 
@@ -60,4 +62,33 @@ export async function startCourse(slug: string) {
     await updateUser(user.id, (u) => ({ ...u, startedCourses: [...u.startedCourses, slug] }));
   }
   redirect(`/app/courses/${slug}/learn`);
+}
+
+// She finishes a lesson. When the last lesson of her module is done the next module
+// opens, and finishing the last module earns her certificate.
+export async function completeLesson(slug: string, lessonIndex: number) {
+  const user = await currentUser();
+  if (!user) redirect("/login");
+  const course = findCourse(slug);
+  if (!course) return;
+
+  const done = user.modulesDone?.[slug] ?? 0;
+  const unit = course.modules[done];
+  if (!unit || !unit.lessons[lessonIndex] || unit.lessons[lessonIndex].kind === "review") return;
+
+  const lessons = [...new Set([...(user.lessonsDone?.[slug] ?? []), lessonIndex])];
+  const moduleFinished = requiredLessons(unit).every((index) => lessons.includes(index));
+  await updateUser(user.id, (u) => ({
+    ...u,
+    startedCourses: u.startedCourses.includes(slug) ? u.startedCourses : [...u.startedCourses, slug],
+    modulesDone: { ...u.modulesDone, [slug]: moduleFinished ? done + 1 : done },
+    lessonsDone: { ...u.lessonsDone, [slug]: moduleFinished ? [] : lessons },
+  }));
+  revalidatePath("/app", "layout");
+
+  if (moduleFinished && done + 1 === course.modules.length) {
+    const certificate = await issueCertificate(user, course);
+    after(() => recordOnStellar(certificate.id).catch((error) => console.error("Certificate record failed:", error)));
+    redirect(`/app/certificates/${certificate.id}`);
+  }
 }
