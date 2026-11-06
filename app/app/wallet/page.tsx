@@ -28,7 +28,7 @@ async function Balance() {
 
   return (
     <div className="flex max-w-120 flex-col gap-4 p-6 lg:p-7">
-      <div className="flex flex-col gap-1 rounded-2xl bg-green p-5">
+      <div className="on-dark flex flex-col gap-1 rounded-2xl bg-green p-5">
         <span className="text-body-2-regular text-text-tertiary">Learning wallet</span>
         <Suspense fallback={<span className="h-9" aria-label="Loading balance" />}>
           <WalletBalance address={address} className="text-display-4-medium tracking-[-0.03em] text-radiant" />
@@ -39,7 +39,7 @@ async function Balance() {
           href={explorer.account(address)}
           target="_blank"
           rel="noreferrer"
-          className="flex min-h-11 items-center self-start rounded-lg text-body-medium text-purple underline outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring"
+          className="flex min-h-11 items-center self-start rounded-lg text-body-medium text-coin-newest-side underline outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring"
         >
           See your wallet on Stellar
         </a>

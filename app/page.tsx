@@ -140,7 +140,7 @@ export default function Landing() {
           <figure className="flex min-w-0 grow basis-90 flex-col items-center gap-4">
             <CoinFan label="Juno coin fan" animate className="w-full max-w-115" />
             <div className="flex w-full max-w-95 flex-col gap-3 rounded-[20px] bg-green p-4.5">
-              <p className="text-copy-sm">A mentor can review your logo today. It costs 0.50 USDC from your wallet. Book it?</p>
+              <p className="text-copy-sm">A mentor can review your agent today. It costs 0.50 USDC from your wallet. Book it?</p>
               <div className="flex gap-2">
                 <span className="flex min-h-11 flex-1 items-center justify-center rounded-full bg-radiant text-body-medium text-dark-green">
                   Book review

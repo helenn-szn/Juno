@@ -3,7 +3,9 @@
 import "server-only";
 import { google } from "@ai-sdk/google";
 
-// "-latest" always points at Google's newest Flash model.
-export const model = google("gemini-flash-latest");
+// The newest Flash model that answers reliably. Google's newer ones (3.7, 3.8)
+// and the "gemini-flash-latest" alias were hanging when this was tested, and
+// older ones (2.5) are closed to new keys. To move up, change this one line.
+export const model = google("gemini-3.6-flash");
 
 export const isAiReady = () => Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY);

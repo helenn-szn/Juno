@@ -11,7 +11,7 @@ export type Lesson = {
 export type Module = { title: string; lessons: Lesson[] };
 
 export type CourseIcon = "robot" | "chat" | "nodes" | "python" | "chart" | "blocks";
-export type CourseCover = "purple" | "radiant" | "neon" | "green" | "mint" | "line";
+export type CourseCover = "purple" | "radiant" | "neon" | "green" | "mint" | "forest";
 
 export type Course = {
   slug: string;
@@ -184,7 +184,7 @@ export const courses: Course[] = [
     topic: "Blockchain",
     summary: "What a blockchain is, how wallets work, and how to send money and check proof on Stellar.",
     icon: "blocks",
-    cover: "line",
+    cover: "forest",
     modules: placeholder([
       "What is a blockchain",
       "Wallets and keys",

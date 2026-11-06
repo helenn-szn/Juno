@@ -63,7 +63,7 @@ async function Body({ course }: { course: Course }) {
     <PageGrid
       main={
         <>
-          <div className="relative flex min-h-60 flex-col justify-between gap-6 overflow-hidden rounded-[20px] bg-green p-6 sm:aspect-video sm:p-7">
+          <div className="on-dark relative flex min-h-60 flex-col justify-between gap-6 overflow-hidden rounded-[20px] bg-green p-6 sm:aspect-video sm:p-7">
             <CoinFan surface="stroke-green" className="absolute -right-1 top-5 w-[40%] max-w-105 sm:top-auto sm:-right-[2%] sm:bottom-[14%] sm:w-[46%]" />
             <div className="relative flex max-w-[60%] flex-col gap-2.5">
               <span className="text-section leading-[1.05]">{lesson.title}</span>
@@ -95,7 +95,7 @@ async function Body({ course }: { course: Course }) {
       }
       side={
         <>
-          <div className="flex flex-col items-center gap-4 rounded-2xl bg-green p-5.5">
+          <div className="on-dark flex flex-col items-center gap-4 rounded-2xl bg-green p-5.5">
             <h2 className="self-start text-title-3-medium">Course progress</h2>
             <ProgressRing percent={progress.percent} />
             <span className="text-body-regular text-text-secondary">
@@ -121,7 +121,7 @@ async function Body({ course }: { course: Course }) {
               <span className="text-body-medium">{course.modules.length}</span>
             </p>
             <p className="flex items-center gap-3 text-copy-sm">
-              <CoinIcon tone="purple" className="h-7.5 w-6.5" />
+              <CoinIcon tone="newest" className="h-7.5 w-6.5" />
               <span className="flex-1">Certificate</span>
               <span className="text-body-medium">1</span>
             </p>

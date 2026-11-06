@@ -8,10 +8,10 @@ import Link from "next/link";
 // and Juno.ai in the corner.
 export default function AppLayout({ children }: LayoutProps<"/app">) {
   return (
-    <div className="flex min-h-dvh">
+    <div className="app-light flex min-h-dvh bg-background-full text-text-primary">
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-7 border-e border-line px-4 py-6 lg:flex">
         <Link href="/app" className="flex min-h-11 items-center gap-2 rounded-lg px-2 outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-          <CoinFan className="h-7 w-10" />
+          <CoinFan theme="light" className="h-7 w-10" />
           <span className="text-wordmark-sm text-text-accent">juno</span>
         </Link>
         <SidebarLinks />

@@ -1,10 +1,10 @@
 import { ProgressTrack } from "@/components/base/progress/progress";
 
 /** A thin progress bar, announced as a progress bar to screen readers. */
-export function ProgressLine({ percent, label, size = "lg" }: { percent: number; label: string; size?: "sm" | "lg" }) {
+export function ProgressLine({ percent, label, size = "lg", track = "bg-line" }: { percent: number; label: string; size?: "sm" | "lg"; track?: string }) {
   return (
     <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} className="w-full">
-      <ProgressTrack percentage={percent} size={size} className="bg-dark-green text-radiant" />
+      <ProgressTrack percentage={percent} size={size} className={`${track} text-radiant`} />
     </div>
   );
 }
