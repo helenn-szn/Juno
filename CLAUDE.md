@@ -134,6 +134,10 @@ Landing page scroll animation, kept subtle:
 - Respect `prefers-reduced-motion`: show everything instantly
 - Content must be visible without JavaScript (animate from a class added by JS, never hide by default in CSS)
 
+- Nav links (header, mobile menu, footer) scroll smoothly to their section: `scroll-behavior: smooth` on `html`, plus `scroll-margin-top` on sections so headings aren't hidden. Off under `prefers-reduced-motion`
+
+Landing page header on phones (under 760px): the links collapse into a three-line menu button (44px+ tap target, `aria-expanded`, `aria-controls`). Tapping it opens a full-width menu under the header with the three links and a full-width "Get started" button; the icon turns into an X. Tapping a link scrolls to its section and closes the menu. Escape also closes it.
+
 ## Brand
 
 Name: **juno** (always lowercase in the wordmark). Tagline: "Where women mint their skills." Supporting line: "Learn. Prove. Rise."
@@ -169,7 +173,7 @@ Voice: the proud mentor. Warm, plain, celebrating.
 
 ## Code map
 
-- `app/page.tsx`: the landing page, built from `Landing.dc.html` (copy as written)
+- `app/page.tsx`: the landing page, built from `Landing.dc.html` (copy as written). `components/landing-header.tsx` is its header with the phone menu; `components/landing-motion.tsx` the scroll reveal
 - `app/signup`, `app/login`, `app/actions.ts`: Create account, Log in, Log out, Start course (server actions). Signing up opens her testnet wallet in the background (`setUpWallet`)
 - `app/app/layout.tsx`: the app frame (sidebar on desktop, tab bar on phones, Juno.ai in the corner). Screens: `page.tsx` Dashboard, `courses/` all courses with `?q=` search, `courses/[slug]` Course details, `courses/[slug]/learn` (where the study agent lands next), `learning/`, `certificates/`, `wallet/`, `settings/`
 - `components/`: `top-bar` (title, search, account menu), `app-nav` (sidebar + tab bar), `course-card`, `continue-card`, `lesson-list`, `module-list`, `progress` (bar and ring), `coin-fan` (the logo, and her coins), `juno-chat` (the floating Juno.ai). `components/base/` is BoardUI
