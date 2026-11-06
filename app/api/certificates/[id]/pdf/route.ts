@@ -12,7 +12,7 @@ export async function GET(_: Request, { params }: RouteContext<"/api/certificate
   if (!certificate || certificate.userId !== user.id) return NextResponse.json({ error: "not-found" }, { status: 404 });
 
   const url = await verifyUrl(certificate.id);
-  const bytes = await certificatePdf(certificate, url, await qrPng(url, 400));
+  const bytes = await certificatePdf(certificate, await qrPng(url, 400));
   return new NextResponse(Buffer.from(bytes), {
     headers: {
       "content-type": "application/pdf",

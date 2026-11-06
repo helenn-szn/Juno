@@ -36,7 +36,7 @@ async function Certificate({ params }: Pick<PageProps<"/app/certificates/[id]">,
   const qr = await qrPng(url);
 
   return (
-    <div className="flex max-w-170 flex-col gap-5 p-6 lg:p-7">
+    <div className="flex max-w-250 flex-col gap-5 p-6 lg:p-7">
       <p className="text-title-3-medium">Skill minted. That&apos;s yours forever.</p>
       <CertificateCard certificate={certificate} qr={qr} />
       <div className="flex flex-wrap items-center gap-3">
@@ -55,7 +55,7 @@ async function Certificate({ params }: Pick<PageProps<"/app/certificates/[id]">,
           rel="noreferrer"
           className="flex min-h-11 items-center gap-2 self-start rounded-full bg-purple px-4 text-body-medium text-dark-green outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring"
         >
-          Verified on Stellar
+          See the record on Stellar
           <RiArrowRightUpLine className="size-5" aria-hidden />
         </a>
       ) : (

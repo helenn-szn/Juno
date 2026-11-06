@@ -1,14 +1,15 @@
 // Certificates. One is issued when a learner finishes every module of a course.
-// It gets a random public id (the QR code points at /verify/[id]) and, a moment
-// later, a record on Stellar: the juno wallet writes the id into a transaction.
+// It gets a short random public id (the QR code points at /verify/[id]) and, a moment
+// later, a record on Stellar: the juno wallet sends a transaction with the id as its memo.
 // Stored in Redis on the live site, data/certificates.json on your machine.
 import "server-only";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { Operation } from "@stellar/stellar-sdk";
+import { Asset, Operation } from "@stellar/stellar-sdk";
 import { Redis } from "@upstash/redis";
-import { submit, wallet } from "./stellar";
+import { findCourse } from "./courses";
+import { submitWithMemo, wallet } from "./stellar";
 
 export type Certificate = {
   id: string;
@@ -61,7 +62,7 @@ export async function issueCertificate(user: { id: string; name: string }, cours
   const existing = (await certificatesFor(user.id)).find((c) => c.courseSlug === course.slug);
   if (existing) return existing;
   const certificate: Certificate = {
-    id: crypto.randomUUID(),
+    id: crypto.randomBytes(15).toString("base64url"), // 20 characters, short enough for a Stellar memo
     userId: user.id,
     name: user.name,
     courseSlug: course.slug,
@@ -72,11 +73,25 @@ export async function issueCertificate(user: { id: string; name: string }, cours
   return certificate;
 }
 
-/** Writes the certificate id into a Stellar transaction. Quietly does nothing if wallets aren't set up. */
+/** The details a certificate shows besides what is stored: course level, skill coins and her mentor. */
+export function certificateFacts(certificate: Certificate) {
+  const course = findCourse(certificate.courseSlug);
+  return {
+    level: course?.level ?? "Beginner",
+    coins: course?.modules.length ?? 0,
+    mentor: "Zainab", // the one demo mentor, until real mentor matching exists
+  };
+}
+
+/** Records the certificate on Stellar: a tiny transaction whose memo is the certificate id. */
 export async function recordOnStellar(id: string) {
   const certificate = await findCertificate(id);
   const juno = wallet("juno");
   if (!certificate || certificate.transaction || !juno) return;
-  const transaction = await submit(juno, Operation.manageData({ name: `juno-certificate:${id.slice(0, 8)}`, value: id }));
+  // A payment of the smallest possible amount to itself: it leaves nothing behind but the record.
+  const record = () =>
+    submitWithMemo(juno, id, Operation.payment({ destination: juno.publicKey(), asset: Asset.native(), amount: "0.0000001" }));
+  // The juno wallet also pays fees for x402 payments; if both land at once, try again.
+  const transaction = await record().catch(() => record());
   await save({ ...certificate, transaction });
 }
