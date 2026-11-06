@@ -181,7 +181,8 @@ Voice: the proud mentor. Warm, plain, celebrating.
 - `proxy.ts`: signed out → /app goes to Log in; signed in → Log in/Create account go to /app
 - `lib/session.ts`: signed cookie. `lib/users.ts`: learners, in Redis when `UPSTASH_REDIS_REST_URL`/`KV_REST_API_URL` is set, else `data/users.json` (never committed)
 - `lib/ai.ts`: the AI provider (Gemini, one line to swap). `lib/juno-ai.ts` + `app/api/juno-ai`: Juno.ai (streams; tools `listCourses` and `getCourse`; marks a recommendation as `[course:slug]`). Needs `GOOGLE_GENERATIVE_AI_API_KEY`
-- `components/mentor-review.tsx`: step 1's pay button, unused for now; it returns inside the course flow
+- `lib/study-agent.ts` + `app/api/study-agent` + `components/study-agent.tsx`: the study agent on `courses/[slug]/learn` (streams; tools `suggestFreeResource`, `offerPaidHelp`, `checkBudget`). It never pays: the offer card's Book review button calls `app/api/pay`
+- `components/mentor-review.tsx`: step 1's pay button, unused now that the study agent has its own offer card
 - `lib/constants.ts`: network, price, explorer links (safe in the browser)
 - `lib/stellar.ts`: wallets and balances (server and scripts)
 - `lib/x402.ts`: x402 seller, in-app facilitator (juno wallet pays fees; the hosted one timed out and still charged), and the learner's payer (`payForMentorReview`, the future `payForService` tool)

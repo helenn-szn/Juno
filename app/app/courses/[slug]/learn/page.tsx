@@ -1,8 +1,9 @@
-// Where a started course lives. The study agent, mentor reviews and skill coins land here next.
+// Where a started course lives: this module's lessons, and her study agent.
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LessonList } from "@/components/lesson-list";
+import { StudyAgent } from "@/components/study-agent";
 import { PageSpinner } from "@/components/page-spinner";
 import { Section } from "@/components/page-grid";
 import { TopBar } from "@/components/top-bar";
@@ -48,9 +49,12 @@ async function Current({ slug }: { slug: string }) {
   const unit = progress.currentModule ?? course.modules[course.modules.length - 1];
 
   return (
-    <div className="flex max-w-170 flex-col gap-4 p-6 lg:p-7">
+    <div className="flex max-w-170 flex-col gap-9 p-6 lg:p-7">
       <Section title={`Module ${course.modules.indexOf(unit) + 1}: ${unit.title}`} id="lessons">
         <LessonList lessons={unit.lessons} started />
+      </Section>
+      <Section title="Study agent" id="agent">
+        <StudyAgent course={course.slug} stuckOn={unit.title} />
       </Section>
     </div>
   );

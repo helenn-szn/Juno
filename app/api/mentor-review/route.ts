@@ -23,7 +23,7 @@ export const GET =
       review,
       {
         accepts: { scheme: "exact", price: `$${MENTOR_REVIEW_PRICE}`, network: NETWORK, payTo: mentor.publicKey() },
-        description: "Mentor review of your logo design",
+        description: "Mentor review of your agent",
       },
       x402Server,
     )
