@@ -149,12 +149,15 @@ Voice: the proud mentor. Warm, plain, celebrating.
 
 ## Code map
 
+- `app/page.tsx`: the landing page, built from `Landing.dc.html` (copy as written)
+- `app/app/page.tsx`: the app (for now: balances and the mentor review button)
+- `components/coin-fan.tsx`: the logo
 - `lib/constants.ts`: network, price, explorer links (safe in the browser)
 - `lib/stellar.ts`: wallets and balances (server and scripts)
 - `lib/x402.ts`: x402 seller, in-app facilitator (juno wallet pays fees; the hosted one timed out and still charged), and the learner's payer (`payForMentorReview`, the future `payForService` tool)
 - `app/api/mentor-review`: the paid route (402 until paid)
 - `app/api/pay`: the learner's agent pays for a review
 - `scripts/setup.ts`, `scripts/pay.ts`: `npm run setup`, `npm run pay`
-- `styles/juno.css`: the brand, applied as BoardUI tokens
+- `styles/juno.css`: the brand, applied as BoardUI tokens, plus the landing type styles (mirror new ones in `utils/cx.ts`). The only file with hex colours
 
 UI rules for BoardUI: @AGENTS.md

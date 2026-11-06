@@ -1,46 +1,104 @@
 /* Juno's brand on top of BoardUI.
  * BoardUI components only read semantic tokens, so re-pointing those tokens
- * here re-skins every component without touching component code. */
+ * here re-skins every component without touching component code.
+ * Every hex value in the project lives in this file. */
 @import "./globals.css";
 
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  /* Brand meanings, as text colours: text-text-accent, -paid, -proof */
-  --color-text-accent: #d0ff71; /* radiant: logo, key words */
-  --color-text-paid: #27eaa6;   /* neon: only means "paid" */
-  --color-text-proof: #8f93ff;  /* purple: only means "new skill / proof" */
+  /* Brand colours, named as in CLAUDE.md: bg-radiant, text-dark-green, … */
+  --color-dark-green: #183132; /* app background */
+  --color-green: #004d43;      /* cards, surfaces */
+  --color-radiant: #d0ff71;    /* logo, primary buttons, key words */
+  --color-neon: #27eaa6;       /* only means "paid" */
+  --color-purple: #8f93ff;     /* only means "new skill / proof" */
+  --color-mint: #ebfff5;       /* text on dark, light backgrounds */
+
+  /* Coin shading for the logo */
+  --color-coin-side: #9bc748;
+  --color-coin-newest-side: #6266d4;
+
+  /* Brand meanings, as text colours */
+  --color-text-accent: var(--color-radiant);
+  --color-text-paid: var(--color-neon);
+  --color-text-proof: var(--color-purple);
+
+  /* Landing page type, from Landing.dc.html. Smaller sizes use BoardUI's.
+   * Keep utils/cx.ts in sync when adding one. */
+  --text-hero: clamp(2.75rem, 7vw, 5.5rem);
+  --text-hero--line-height: 0.98;
+  --text-hero--letter-spacing: -0.05em;
+  --text-hero--font-weight: 500;
+  --text-section: clamp(1.875rem, 4vw, 3rem);
+  --text-section--line-height: 1.2;
+  --text-section--letter-spacing: -0.04em;
+  --text-section--font-weight: 500;
+  --text-closing: clamp(2.125rem, 5vw, 4rem);
+  --text-closing--line-height: 1.2;
+  --text-closing--letter-spacing: -0.045em;
+  --text-closing--font-weight: 500;
+  --text-stat: 3.25rem;
+  --text-stat--line-height: 1.2;
+  --text-stat--letter-spacing: -0.04em;
+  --text-stat--font-weight: 500;
+  --text-figure: 2rem;
+  --text-figure--line-height: 1.2;
+  --text-figure--letter-spacing: -0.03em;
+  --text-figure--font-weight: 500;
+  --text-wordmark: 1.75rem;
+  --text-wordmark--line-height: 1.2;
+  --text-wordmark--letter-spacing: -0.05em;
+  --text-wordmark--font-weight: 500;
+  --text-wordmark-sm: 1.375rem;
+  --text-wordmark-sm--line-height: 1.2;
+  --text-wordmark-sm--letter-spacing: -0.05em;
+  --text-wordmark-sm--font-weight: 500;
+  --text-role: 1.625rem;
+  --text-role--line-height: 1.2;
+  --text-role--letter-spacing: -0.03em;
+  --text-role--font-weight: 500;
+  --text-step: 1.3125rem;
+  --text-step--line-height: 1.3;
+  --text-step--font-weight: 500;
+  --text-lead: 1.25rem;
+  --text-lead--line-height: 1.55;
+  --text-lead-sm: 1.125rem;
+  --text-lead-sm--line-height: 1.55;
+  --text-cta: 1.0625rem;
+  --text-cta--line-height: 1.4;
+  --text-cta--font-weight: 500;
+  --text-copy: 1rem;
+  --text-copy--line-height: 1.55;
+  --text-copy-sm: 0.9375rem;
+  --text-copy-sm--line-height: 1.55;
 }
 
 .dark {
-  --juno-mint: #ebfff5;
-  --juno-radiant: #d0ff71;
-  --juno-dark-green: #183132;
+  --color-background-full: var(--color-dark-green);
+  --color-background-primary-default: var(--color-green);
+  --color-background-primary-hover: color-mix(in srgb, var(--color-green) 85%, var(--color-mint));
 
-  --color-background-full: var(--juno-dark-green);
-  --color-background-primary-default: #004d43;
-  --color-background-primary-hover: color-mix(in srgb, #004d43 85%, var(--juno-mint));
+  --color-text-primary: var(--color-mint);
+  --color-text-secondary: #cfe3dd;
+  --color-text-tertiary: #a9c4bf;
 
-  --color-text-primary: var(--juno-mint);
-  --color-text-secondary: color-mix(in srgb, var(--juno-mint) 64%, transparent);
-  --color-text-tertiary: color-mix(in srgb, var(--juno-mint) 44%, transparent);
-
-  --color-border-button-default: color-mix(in srgb, var(--juno-mint) 10%, transparent);
-  --color-separator-border: color-mix(in srgb, var(--juno-mint) 10%, transparent);
-  --color-border-focus-ring: var(--juno-radiant);
+  --color-border-button-default: color-mix(in srgb, var(--color-mint) 10%, transparent);
+  --color-separator-border: #3c5a55;
+  --color-border-focus-ring: var(--color-radiant);
 
   /* Primary buttons: flat radiant with dark-green text. No gradients. */
-  --gradient-button-primary-default: linear-gradient(var(--juno-radiant), var(--juno-radiant));
+  --gradient-button-primary-default: linear-gradient(var(--color-radiant), var(--color-radiant));
   --gradient-button-primary-hover: linear-gradient(#dcff94, #dcff94);
   --gradient-button-primary-active: linear-gradient(#bde85f, #bde85f);
   --gradient-button-primary-disabled: linear-gradient(
-    color-mix(in srgb, var(--juno-radiant) 24%, var(--juno-dark-green)),
-    color-mix(in srgb, var(--juno-radiant) 24%, var(--juno-dark-green))
+    color-mix(in srgb, var(--color-radiant) 24%, var(--color-dark-green)),
+    color-mix(in srgb, var(--color-radiant) 24%, var(--color-dark-green))
   );
-  --color-button-primary-disabled-foreground: color-mix(in srgb, var(--juno-mint) 64%, transparent);
+  --color-button-primary-disabled-foreground: #cfe3dd;
 }
 
 .dark .bg-button-primary {
-  --color-text-white: var(--juno-dark-green);
+  --color-text-white: var(--color-dark-green);
 }
