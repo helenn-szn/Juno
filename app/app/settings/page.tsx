@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { logOut } from "@/app/actions";
 import { AvatarUpload } from "@/components/avatar-upload";
@@ -38,6 +39,13 @@ async function Account() {
           <dd className="text-copy-sm break-all">{user.email}</dd>
         </div>
       </dl>
+      <Link
+        href="/app/onboarding"
+        className="flex min-h-14 items-center justify-between rounded-2xl border border-line px-5 text-body-medium outline-none hover:bg-mint focus-visible:ring-2 focus-visible:ring-border-focus-ring"
+      >
+        Your learning plan
+        <span aria-hidden>→</span>
+      </Link>
       <form action={logOut}>
         <Button type="submit" variant="secondary" className="h-11 rounded-full px-5 shadow-none">
           Log out

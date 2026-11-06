@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { issueCertificate, recordOnStellar } from "@/lib/certificates";
 import { findCourse, requiredLessons } from "@/lib/courses";
+import { profileSchema } from "@/lib/profile";
 import { currentUser, endSession, startSession } from "@/lib/session";
 import { checkPassword, createUser, findUserByEmail, setUpWallet, updateUser } from "@/lib/users";
 
@@ -58,6 +59,8 @@ export async function startCourse(slug: string) {
   const user = await currentUser();
   if (!user) redirect("/login");
   if (!findCourse(slug)) return;
+  // Before her first course we ask about her schedule and what she already knows.
+  if (!user.profile) redirect(`/app/onboarding?next=${slug}`);
   if (!user.startedCourses.includes(slug)) {
     await updateUser(user.id, (u) => ({ ...u, startedCourses: [...u.startedCourses, slug] }));
   }
@@ -91,4 +94,25 @@ export async function completeLesson(slug: string, lessonIndex: number) {
     after(() => recordOnStellar(certificate.id).catch((error) => console.error("Certificate record failed:", error)));
     redirect(`/app/certificates/${certificate.id}`);
   }
+}
+
+// Saves what she told us about herself, then carries on to the course she wanted
+// (or her dashboard). The same answers can be given to Juno.ai in the chat.
+export async function saveProfile(next: string | undefined, _: FormState, form: FormData): Promise<FormState> {
+  const user = await currentUser();
+  if (!user) redirect("/login");
+  const parsed = profileSchema.safeParse({
+    experience: form.get("experience"),
+    goal: form.get("goal"),
+    background: field(form, "background"),
+    hoursPerWeek: Number(form.get("hoursPerWeek")),
+    days: form.getAll("days"),
+    time: form.get("time"),
+  });
+  if (!parsed.success) return { errors: { form: "Something is missing. Check each step and try again." } };
+
+  await updateUser(user.id, (u) => ({ ...u, profile: parsed.data }));
+  revalidatePath("/app", "layout");
+  if (next && findCourse(next)) await startCourse(next); // redirects into the course
+  redirect("/app");
 }

@@ -9,6 +9,7 @@ import { model as defaultModel } from "./ai";
 import { MENTOR_REVIEW_PRICE } from "./constants";
 import { errorCode } from "./juno-ai";
 import { findCourse } from "./courses";
+import { describeProfile, type Profile } from "./profile";
 import { usdcBalanceOrZero, wallet } from "./stellar";
 
 const SYSTEM = `You are the study agent inside Juno, a learning wallet for women. You coach one learner through the course she is taking.
@@ -45,13 +46,17 @@ const tools = {
   }),
 };
 
-export async function studyAgent(messages: UIMessage[], courseSlug: string, model: LanguageModel = defaultModel) {
+export async function studyAgent(messages: UIMessage[], courseSlug: string, profile?: Profile, model: LanguageModel = defaultModel) {
   const course = findCourse(courseSlug);
   const result = streamText({
     model,
-    instructions: course
-      ? `${SYSTEM}\n\nHer course: "${course.title}". Its modules: ${course.modules.map((unit, index) => `${index + 1}. ${unit.title}`).join("; ")}.`
-      : SYSTEM,
+    instructions: [
+      SYSTEM,
+      course ? `Her course: "${course.title}". Its modules: ${course.modules.map((unit, index) => `${index + 1}. ${unit.title}`).join("; ")}.` : "",
+      profile ? `What she told us about herself: ${describeProfile(profile)} Explain at her level, use her background for examples, and keep it short if her time is short.` : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
     messages: await convertToModelMessages(messages),
     tools,
     stopWhen: isStepCount(4),

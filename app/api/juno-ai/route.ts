@@ -7,7 +7,8 @@ import { junoAi } from "@/lib/juno-ai";
 import { currentUser } from "@/lib/session";
 
 export async function POST(request: Request) {
-  if (!(await currentUser())) return NextResponse.json({ error: "signed-out" }, { status: 401 });
+  const user = await currentUser();
+  if (!user) return NextResponse.json({ error: "signed-out" }, { status: 401 });
   if (!isAiReady()) return NextResponse.json({ error: "not-configured" }, { status: 503 });
 
   const body = await request.json().catch(() => null);
@@ -24,5 +25,5 @@ export async function POST(request: Request) {
       return part.url && isOurImage(part.url) ? [{ ...part, url: new URL(part.url, origin).href }] : [];
     }),
   }));
-  return junoAi(messages, typeof body.page === "string" ? body.page : undefined);
+  return junoAi(messages, typeof body.page === "string" ? body.page : undefined, user);
 }

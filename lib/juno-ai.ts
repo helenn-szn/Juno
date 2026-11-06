@@ -8,6 +8,8 @@ import type { LanguageModel, UIMessage } from "ai";
 import { z } from "zod";
 import { model as defaultModel } from "./ai";
 import { courses, findCourse, moduleCount } from "./courses";
+import { describeProfile, profileSchema, type Profile } from "./profile";
+import { updateUser } from "./users";
 
 const SYSTEM = `You are Juno.ai, the assistant inside Juno, a sponsored learning wallet for women.
 
@@ -22,7 +24,7 @@ How to answer:
 - If she attaches a photo, look at it and help with what it shows, kindly, in the same short style.
 - Use everyday words. Don't mention blockchains, keys or crypto unless she asks.`;
 
-const tools = {
+const courseTools = {
   listCourses: tool({
     description: "List every course Juno teaches, with slug, level, number of modules and a short summary.",
     inputSchema: z.object({}),
@@ -61,13 +63,49 @@ export const errorCode = (error: unknown) => {
   return statusCode === 429 || statusCode === 503 || /timeout|abort/i.test(name ?? "") ? "busy" : "failed";
 };
 
-export async function junoAi(messages: UIMessage[], page?: string, model: LanguageModel = defaultModel) {
+// Saving what she tells us about herself. Only ever for the signed-in learner.
+const profileTools = (userId: string) => ({
+  saveProfile: tool({
+    description: "Save what she told you about herself: how much she knows, her goal, and when she can study. Call it once you have every answer, or again if she wants to change them.",
+    inputSchema: profileSchema,
+    execute: async (profile) => {
+      await updateUser(userId, (user) => ({ ...user, profile }));
+      return { saved: true };
+    },
+  }),
+});
+
+const ONBOARDING = `She has not told us about herself yet, and every course is tailored to her answers. Warmly help her set up her learning plan right here in the chat, one short question at a time, offering the choices:
+1. How much she knows about tech: new, some, or already works with tech.
+2. What she does now or has studied (a few words).
+3. Her goal: a tech job, growing in her work, building a business, or learning for herself.
+4. Hours a week she can study: 2, 4, 6 or 10.
+5. Which days of the week.
+6. When she studies best: mornings, afternoons, evenings, or whenever she can.
+When you have all six, call saveProfile once. Then say in one sentence that her plan is saved and recommend the best course for her with [course:slug]. Do not ask for anything else, and never ask for an email or a password.`;
+
+export async function junoAi(
+  messages: UIMessage[],
+  page?: string,
+  user?: { id: string; profile?: Profile },
+  model: LanguageModel = defaultModel,
+) {
   const course = page?.startsWith("/app/courses/") ? findCourse(page.split("/")[3] ?? "") : undefined;
   const result = streamText({
     model,
-    instructions: course ? `${SYSTEM}\n\nShe is looking at the course "${course.title}" (slug ${course.slug}) right now.` : SYSTEM,
+    instructions: [
+      SYSTEM,
+      course ? `She is looking at the course "${course.title}" (slug ${course.slug}) right now.` : "",
+      user?.profile
+        ? `What she told us about herself: ${describeProfile(user.profile)} Tailor what you say and recommend to this. If she wants to change her answers, ask what changes and call saveProfile again with all of them.`
+        : user
+          ? ONBOARDING
+          : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
     messages: await convertToModelMessages(messages),
-    tools,
+    tools: { ...courseTools, ...(user ? profileTools(user.id) : {}) },
     stopWhen: isStepCount(4),
     maxOutputTokens: 700,
     maxRetries: 1,
