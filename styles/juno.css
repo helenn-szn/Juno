@@ -1,0 +1,46 @@
+/* Juno's brand on top of BoardUI.
+ * BoardUI components only read semantic tokens, so re-pointing those tokens
+ * here re-skins every component without touching component code. */
+@import "./globals.css";
+
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Brand meanings, as text colours: text-text-accent, -paid, -proof */
+  --color-text-accent: #d0ff71; /* radiant: logo, key words */
+  --color-text-paid: #27eaa6;   /* neon: only means "paid" */
+  --color-text-proof: #8f93ff;  /* purple: only means "new skill / proof" */
+}
+
+.dark {
+  --juno-mint: #ebfff5;
+  --juno-radiant: #d0ff71;
+  --juno-dark-green: #183132;
+
+  --color-background-full: var(--juno-dark-green);
+  --color-background-primary-default: #004d43;
+  --color-background-primary-hover: color-mix(in srgb, #004d43 85%, var(--juno-mint));
+
+  --color-text-primary: var(--juno-mint);
+  --color-text-secondary: color-mix(in srgb, var(--juno-mint) 64%, transparent);
+  --color-text-tertiary: color-mix(in srgb, var(--juno-mint) 44%, transparent);
+
+  --color-border-button-default: color-mix(in srgb, var(--juno-mint) 10%, transparent);
+  --color-separator-border: color-mix(in srgb, var(--juno-mint) 10%, transparent);
+  --color-border-focus-ring: var(--juno-radiant);
+
+  /* Primary buttons: flat radiant with dark-green text. No gradients. */
+  --gradient-button-primary-default: linear-gradient(var(--juno-radiant), var(--juno-radiant));
+  --gradient-button-primary-hover: linear-gradient(#dcff94, #dcff94);
+  --gradient-button-primary-active: linear-gradient(#bde85f, #bde85f);
+  --gradient-button-primary-disabled: linear-gradient(
+    color-mix(in srgb, var(--juno-radiant) 24%, var(--juno-dark-green)),
+    color-mix(in srgb, var(--juno-radiant) 24%, var(--juno-dark-green))
+  );
+  --color-button-primary-disabled-foreground: color-mix(in srgb, var(--juno-mint) 64%, transparent);
+}
+
+.dark .bg-button-primary {
+  --color-text-white: var(--juno-dark-green);
+}
