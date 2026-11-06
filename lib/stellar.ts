@@ -1,5 +1,5 @@
 // Wallets and balances on Stellar testnet. Used by the server and scripts.
-import { Asset, Horizon, Keypair } from "@stellar/stellar-sdk";
+import { Asset, BASE_FEE, Horizon, Keypair, Networks, Operation, TransactionBuilder, xdr } from "@stellar/stellar-sdk";
 
 export const horizon = new Horizon.Server("https://horizon-testnet.stellar.org");
 
@@ -22,4 +22,29 @@ export async function usdcBalance(address: string): Promise<number> {
     (b) => "asset_code" in b && b.asset_code === USDC.code && b.asset_issuer === USDC.issuer,
   );
   return line ? Number(line.balance) : 0;
+}
+
+// Signs and sends a transaction from `source`. Returns the transaction hash.
+export async function submit(source: Keypair, ...ops: xdr.Operation[]) {
+  const account = await horizon.loadAccount(source.publicKey());
+  const tx = new TransactionBuilder(account, { fee: BASE_FEE, networkPassphrase: Networks.TESTNET }).setTimeout(60);
+  ops.forEach((op) => tx.addOperation(op));
+  const built = tx.build();
+  built.sign(source);
+  return (await horizon.submitTransaction(built)).hash;
+}
+
+// Gets a wallet ready to use: free test XLM from Friendbot (pays network fees),
+// then a USDC trustline (permission to hold USDC). Only does what's missing.
+export async function openWallet(keypair: Keypair) {
+  const address = keypair.publicKey();
+  if (!(await horizon.loadAccount(address).catch(() => null))) {
+    const res = await fetch(`https://friendbot.stellar.org?addr=${address}`);
+    if (!res.ok) throw new Error(`Friendbot could not fund ${address} (${res.status})`);
+  }
+  const account = await horizon.loadAccount(address);
+  const holdsUsdc = account.balances.some(
+    (b) => "asset_code" in b && b.asset_code === USDC.code && b.asset_issuer === USDC.issuer,
+  );
+  if (!holdsUsdc) await submit(keypair, Operation.changeTrust({ asset: USDC }));
 }

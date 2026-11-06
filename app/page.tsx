@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { ButtonLink } from "@/components/base/buttons/button";
 import { CoinFan } from "@/components/coin-fan";
+import { LandingMotion } from "@/components/landing-motion";
 import { cx } from "@/utils/cx";
 
 export const metadata: Metadata = {
@@ -101,8 +102,9 @@ const grid = (min: string) => cx("grid gap-4", min);
 export default function Landing() {
   return (
     <>
+      <LandingMotion />
       <header className="mx-auto flex max-w-312 flex-wrap items-center justify-between gap-4 px-6 py-5">
-        <a href="#top" className="flex items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
+        <a href="#top" className="flex min-h-11 items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
           <CoinFan className="h-8 w-11.5" />
           <span className="text-wordmark text-text-accent">juno</span>
         </a>
@@ -136,7 +138,7 @@ export default function Landing() {
           </div>
 
           <figure className="flex min-w-0 grow basis-90 flex-col items-center gap-4">
-            <CoinFan label="Juno coin fan" className="w-full max-w-115" />
+            <CoinFan label="Juno coin fan" animate className="w-full max-w-115" />
             <div className="flex w-full max-w-95 flex-col gap-3 rounded-[20px] bg-green p-4.5">
               <p className="text-copy-sm">A mentor can review your logo today. It costs 0.50 USDC from your wallet. Book it?</p>
               <div className="flex gap-2">
@@ -157,10 +159,10 @@ export default function Landing() {
 
         <section className="bg-mint text-dark-green">
           <div className="mx-auto flex max-w-312 flex-col gap-9 px-6 py-18">
-            <h2 className="max-w-190 text-section">Free lessons are everywhere. Real help isn&apos;t.</h2>
+            <h2 data-reveal className="max-w-190 text-section">Free lessons are everywhere. Real help isn&apos;t.</h2>
             <div className={grid("grid-cols-[repeat(auto-fit,minmax(240px,1fr))]")}>
               {problem.map((p) => (
-                <div key={p.figure} className="flex flex-col gap-2 rounded-2xl bg-white p-6">
+                <div key={p.figure} data-reveal className="flex flex-col gap-2 rounded-2xl bg-white p-6">
                   <span className="text-stat text-green">{p.figure}</span>
                   <span className="text-copy">{p.text}</span>
                   <a href={p.href} className="text-body-2-regular text-green underline">{p.source}</a>
@@ -171,13 +173,13 @@ export default function Landing() {
         </section>
 
         <section id="how" className="mx-auto flex max-w-312 flex-col gap-9 px-6 py-22">
-          <div className="flex max-w-180 flex-col gap-3">
+          <div data-reveal className="flex max-w-180 flex-col gap-3">
             <span className={eyebrow}>How it works</span>
             <h2 className="text-section">Money moves only when real help is given.</h2>
           </div>
           <ol className={grid("grid-cols-[repeat(auto-fit,minmax(240px,1fr))]")}>
             {steps.map((s, i) => (
-              <li key={s.title} className="flex flex-col gap-3 rounded-2xl bg-green p-6">
+              <li key={s.title} data-reveal className="flex flex-col gap-3 rounded-2xl bg-green p-6">
                 <span className={cx("flex size-10 items-center justify-center rounded-full text-headline-medium text-dark-green", s.dot)}>
                   {i + 1}
                 </span>
@@ -190,13 +192,13 @@ export default function Landing() {
 
         <section id="who" className="bg-green">
           <div className="mx-auto flex max-w-312 flex-col gap-9 px-6 py-22">
-            <div className="flex max-w-180 flex-col gap-3">
+            <div data-reveal className="flex max-w-180 flex-col gap-3">
               <span className={eyebrow}>Who it&apos;s for</span>
               <h2 className="text-section">Women win on both sides of every payment.</h2>
             </div>
             <div className={grid("grid-cols-[repeat(auto-fit,minmax(260px,1fr))]")}>
               {audiences.map((a) => (
-                <div key={a.id} id={a.id} className={cx("flex flex-col gap-3 rounded-2xl p-7 text-dark-green", a.surface)}>
+                <div key={a.id} id={a.id} data-reveal className={cx("flex flex-col gap-3 rounded-2xl p-7 text-dark-green", a.surface)}>
                   <h3 className="text-role">{a.title}</h3>
                   <p className="text-copy">{a.text}</p>
                   <a href={APP} className="mt-auto self-start text-headline-medium underline">{a.action}</a>
@@ -207,7 +209,7 @@ export default function Landing() {
         </section>
 
         <section id="work" className="mx-auto flex max-w-312 flex-wrap items-center gap-12 px-6 py-22">
-          <div className="flex min-w-0 grow basis-105 flex-col gap-4">
+          <div data-reveal className="flex min-w-0 grow basis-105 flex-col gap-4">
             <span className={eyebrow}>From skills to work</span>
             <h2 className="text-section">Learn it. Prove it. Get paid for it.</h2>
             <p className="text-lead-sm text-text-secondary">
@@ -217,7 +219,7 @@ export default function Landing() {
           </div>
           <ul className="flex min-w-0 grow basis-95 flex-col gap-3">
             {outcomes.map((o) => (
-              <li key={o.title} className="flex items-center gap-3.5 rounded-2xl bg-green px-5 py-4.5">
+              <li key={o.title} data-reveal className="flex items-center gap-3.5 rounded-2xl bg-green px-5 py-4.5">
                 <span className={cx("size-10 shrink-0 rounded-full", o.dot)} />
                 <div className="flex flex-col gap-0.5">
                   <span className="text-cta">{o.title}</span>
@@ -231,7 +233,7 @@ export default function Landing() {
         <section className="border-y border-separator-border">
           <dl className="mx-auto grid max-w-312 grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 px-6 py-12">
             {facts.map((f) => (
-              <div key={f.figure} className="flex flex-col gap-1.5">
+              <div key={f.figure} data-reveal className="flex flex-col gap-1.5">
                 <dt className="text-figure text-text-accent">{f.figure}</dt>
                 <dd className="text-copy-sm text-text-secondary">{f.text}</dd>
               </div>
@@ -240,12 +242,12 @@ export default function Landing() {
         </section>
 
         <section id="start" className="mx-auto flex max-w-312 flex-col items-center gap-6 px-6 py-24 text-center">
-          <CoinFan label="Juno coin fan" className="h-27.75 w-40" />
-          <h2 className="max-w-205 text-closing">Sponsor her first skill.</h2>
-          <p className="max-w-140 text-lead-sm text-text-secondary">
+          <CoinFan label="Juno coin fan" data-reveal className="h-27.75 w-40" />
+          <h2 data-reveal className="max-w-205 text-closing">Sponsor her first skill.</h2>
+          <p data-reveal className="max-w-140 text-lead-sm text-text-secondary">
             Juno is in beta on Stellar testnet, built for EmpowerHer 2026. Try the demo and watch a skill get minted.
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div data-reveal className="flex flex-wrap justify-center gap-3">
             <ButtonLink href={APP} className={large}>Launch the demo</ButtonLink>
             <ButtonLink href={APP} id="mentor" variant="secondary" className={cx(large, outline)}>
               Become a mentor
