@@ -19,6 +19,7 @@ How to answer:
 - Sound like a proud mentor: warm, plain, encouraging. Two to four short sentences.
 - To recommend a course, name it and put [course:slug] on its own line, using the slug from the tools. The screen turns that line into a clickable card. Recommend at most three.
 - If she asks for something Juno doesn't teach yet, say so kindly and suggest the closest course.
+- If she attaches a photo, look at it and help with what it shows, kindly, in the same short style.
 - Use everyday words. Don't mention blockchains, keys or crypto unless she asks.`;
 
 const tools = {

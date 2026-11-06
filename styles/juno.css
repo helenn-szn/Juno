@@ -17,6 +17,9 @@
   --color-mint: #ebfff5;       /* text on dark, light backgrounds */
   --color-line: #2c4a48;       /* dividers and quiet surfaces on dark-green */
   --color-forest: #2c4a48;     /* a fixed mid-green, for the Blockchain cover */
+  --color-footer: #12282a;     /* the landing footer, a shade under dark-green */
+  --color-paper-line: #cfddd7; /* hairline on the white mini certificate */
+  --color-ink-muted: #4a615e;  /* muted text on mint and white cards */
 
   /* Coin shading for the logo */
   --color-coin-side: #9bc748;
@@ -138,6 +141,20 @@
 
 .dark .bg-button-primary {
   --color-text-white: var(--color-dark-green);
+}
+
+/* Smooth scrolling for the landing nav links. Sections stop a little below the
+ * top so their headings are never hidden. Off for people who prefer less motion. */
+html {
+  scroll-behavior: smooth;
+}
+section {
+  scroll-margin-top: 24px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* Landing motion (see components/landing-motion.tsx). Elements are only hidden

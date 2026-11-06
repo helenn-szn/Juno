@@ -1,6 +1,8 @@
 // The learner's dashboard: what she's learning, what to try next, her wallet and her coins.
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import { RiAddLine } from "@remixicon/react";
+import { ButtonLink } from "@/components/base/buttons/button";
 import { ContinueCard } from "@/components/continue-card";
 import { CoinFan } from "@/components/coin-fan";
 import { CourseCard } from "@/components/course-card";
@@ -66,18 +68,15 @@ async function Content() {
       side={
         <>
           <div className="on-dark flex flex-col gap-4 rounded-2xl bg-green p-5">
-            <div className="flex items-center gap-3">
-              <span className="flex size-13 items-center justify-center rounded-full bg-purple text-title-3-medium text-dark-green" aria-hidden>
-                {user.name.charAt(0).toUpperCase()}
-              </span>
-              <span className="truncate text-title-3-medium">{user.name.split(" ")[0]}</span>
-            </div>
             <div className="flex flex-col gap-1 rounded-xl bg-dark-green p-4">
               <span className="text-body-2-regular text-text-tertiary">Learning wallet</span>
               <Suspense fallback={<span className="h-9" aria-label="Loading balance" />}>
                 <WalletBalance address={user.wallet?.publicKey} className="text-display-4-medium tracking-[-0.03em] text-radiant" />
               </Suspense>
             </div>
+            <ButtonLink href="/app/wallet" leadingIcon={RiAddLine} className="h-11 rounded-full shadow-none">
+              Fund wallet
+            </ButtonLink>
           </div>
 
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-line p-5">

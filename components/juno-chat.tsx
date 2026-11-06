@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { RiArrowUpLine, RiCloseLine } from "@remixicon/react";
+import { RiArrowUpLine, RiCloseLine, RiImageAddLine } from "@remixicon/react";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
 import { Spinner } from "@/components/base/spinner/spinner";
 import { CourseRow } from "@/components/course-card";
 import { touchInput } from "@/components/touch-input";
 import { findCourse } from "@/lib/courses";
+import { uploadImage } from "@/lib/upload-client";
 import { cx } from "@/utils/cx";
 
 const transport = new DefaultChatTransport({ api: "/api/juno-ai" });
@@ -58,6 +59,8 @@ export function JunoChat() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  const [photo, setPhoto] = useState<{ url: string; type: "uploading" | "ready" | "error" }>();
+  const picker = useRef<HTMLInputElement>(null);
   const { messages, sendMessage, status, error } = useChat({ transport });
   const launcher = useRef<HTMLButtonElement>(null);
   const end = useRef<HTMLDivElement>(null);
@@ -105,11 +108,27 @@ export function JunoChat() {
     if (window.matchMedia("(max-width: 1023px)").matches) setOpen(false);
   }
 
+  async function attach(file: File | undefined) {
+    if (!file) return;
+    setPhoto({ url: URL.createObjectURL(file), type: "uploading" });
+    try {
+      const url = await uploadImage(file, "chat");
+      setPhoto({ url, type: "ready" });
+    } catch {
+      setPhoto({ url: "", type: "error" });
+    }
+  }
+
   function ask(text: string) {
     const question = text.trim();
-    if (!question || busy) return;
-    sendMessage({ text: question }, { body: { page: pathname } });
+    const image = photo?.type === "ready" ? photo.url : undefined;
+    if ((!question && !image) || busy || photo?.type === "uploading") return;
+    sendMessage(
+      { text: question || "What do you see here?", files: image ? [{ type: "file", mediaType: "image/jpeg", url: image }] : undefined },
+      { body: { page: pathname } },
+    );
     setDraft("");
+    setPhoto(undefined);
   }
 
   return (
@@ -152,12 +171,17 @@ export function JunoChat() {
           <p className="max-w-[90%] rounded-[16px_16px_16px_4px] bg-dark-green px-3.5 py-3 text-copy-sm">{GREETING}</p>
           {messages.map((message) =>
             message.role === "user" ? (
-              <p
-                key={message.id}
-                className="max-w-[85%] self-end whitespace-pre-line rounded-[16px_16px_4px_16px] bg-radiant px-3.5 py-3 text-copy-sm text-dark-green"
-              >
-                {message.parts.map((part) => (part.type === "text" ? part.text : "")).join("")}
-              </p>
+              <div key={message.id} className="flex max-w-[85%] flex-col items-end gap-1.5 self-end">
+                {message.parts.map((part, index) =>
+                  part.type === "file" ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- her own upload
+                    <img key={index} src={part.url} alt="Your photo" className="max-h-48 rounded-2xl object-cover" />
+                  ) : null,
+                )}
+                <p className="whitespace-pre-line rounded-[16px_16px_4px_16px] bg-radiant px-3.5 py-3 text-copy-sm text-dark-green">
+                  {message.parts.map((part) => (part.type === "text" ? part.text : "")).join("")}
+                </p>
+              </div>
             ) : (
               <Reply
                 key={message.id}
@@ -195,6 +219,26 @@ export function JunoChat() {
           </div>
         )}
 
+        {photo && (
+          <div className="flex items-center gap-3">
+            {photo.type === "error" ? (
+              <p role="alert" className="me-auto text-body-regular text-text-error-primary">That photo didn&apos;t upload. Try another?</p>
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element -- her own upload
+              <img src={photo.url} alt="Photo to send" className={cx("size-14 rounded-xl object-cover", photo.type === "uploading" && "opacity-50")} />
+            )}
+            {photo.type === "uploading" && <Spinner size="sm" aria-label="Uploading photo" />}
+            <button
+              type="button"
+              onClick={() => setPhoto(undefined)}
+              aria-label="Remove photo"
+              className="ms-auto flex size-11 items-center justify-center rounded-full outline-none hover:bg-dark-green/50 focus-visible:ring-2 focus-visible:ring-border-focus-ring"
+            >
+              <RiCloseLine className="size-5" aria-hidden />
+            </button>
+          </div>
+        )}
+
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -202,6 +246,26 @@ export function JunoChat() {
           }}
           className="flex items-center gap-2"
         >
+          <input
+            ref={picker}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            aria-label="Choose a photo"
+            hidden
+            onChange={(event) => {
+              attach(event.target.files?.[0]);
+              event.target.value = "";
+            }}
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            iconOnly
+            leadingIcon={RiImageAddLine}
+            aria-label="Add a photo"
+            onClick={() => picker.current?.click()}
+            className="size-11 shrink-0 rounded-full p-0 shadow-none"
+          />
           <Input
             aria-label="Message Juno.ai"
             placeholder="Ask Juno.ai"
@@ -218,7 +282,7 @@ export function JunoChat() {
             iconOnly
             leadingIcon={RiArrowUpLine}
             aria-label="Send"
-            disabled={busy || !draft.trim()}
+            disabled={busy || photo?.type === "uploading" || (!draft.trim() && photo?.type !== "ready")}
             className="size-11 shrink-0 rounded-full p-0 shadow-none"
           />
         </form>

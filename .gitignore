@@ -43,3 +43,6 @@ next-env.d.ts
 
 # learner accounts (local demo store)
 /data/
+
+# uploaded images (local demo store)
+/public/uploads/
