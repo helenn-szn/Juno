@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { logOut } from "@/app/actions";
+import { AvatarUpload } from "@/components/avatar-upload";
 import { Button } from "@/components/base/buttons/button";
 import { PageSpinner } from "@/components/page-spinner";
 import { TopBar } from "@/components/top-bar";
@@ -26,6 +27,7 @@ async function Account() {
 
   return (
     <div className="flex max-w-120 flex-col gap-6 p-6 lg:p-7">
+      <AvatarUpload name={user.name} src={user.avatar} />
       <dl className="flex flex-col divide-y divide-line rounded-2xl border border-line">
         <div className="flex flex-col gap-0.5 px-5 py-4">
           <dt className="text-body-2-regular text-text-tertiary">Name</dt>
