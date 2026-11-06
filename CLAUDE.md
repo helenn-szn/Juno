@@ -43,7 +43,7 @@ In:
 
 Stretch: resume filled from a Juno-provided template.
 
-Out (fake or skip): logins (use a role switcher: Sponsor / Learner / Mentor), real mentor matching (one demo mentor), multiple skills (one track: logo design), mobile app, personal website builder.
+Out (fake or skip): mentor and sponsor logins (use a demo role switcher for them), real mentor matching (one demo mentor), full content for every course (only Logo design is complete), mobile app, personal website builder.
 
 ## Tech plan
 
@@ -51,9 +51,10 @@ Out (fake or skip): logins (use a role switcher: Sponsor / Learner / Mentor), re
 - UI components: **BoardUI** (React + Tailwind v4 + React Aria, source copied into the repo). Add components with `npx boardui add <component>` or through the BoardUI MCP server. Check BoardUI's docs for exact component names. Use BoardUI for buttons, inputs, cards, chat, tabs and charts before writing custom ones, and restyle them with our brand tokens. Don't add a second component library
 - Routes: `/` landing page (built from `Landing.dc.html`), `/app` the app, `/verify/[id]` certificate check
 - Stellar **testnet** only. Use `@stellar/stellar-sdk` and Horizon testnet
-- x402 on Stellar: follow the official docs at https://developers.stellar.org/docs/build/agentic-payments/x402 and use a facilitator (Coinbase x402 facilitator or the OpenZeppelin Relayer x402 plugin). Do not build verification/settlement ourselves
+- x402 on Stellar: follow the official docs at https://developers.stellar.org/docs/build/agentic-payments/x402. We run the official `@x402/stellar` facilitator inside the app, and the juno wallet pays the network fees (the hosted Coinbase facilitator timed out and still charged the learner). Do not write verification/settlement code ourselves
 - The mentor review is an API route protected by x402 (returns 402 with a price, accepts payment proof)
 - The agent is an LLM call with tools: `suggestFreeResource`, `offerPaidHelp`, `payForService` (x402 client, only after user confirms), `checkBudget`
+- LLM: Gemini through `@google/genai` (`GOOGLE_GENERATIVE_AI_API_KEY`, model `gemini-flash-latest`). Juno.ai uses it today; the study agent will too
 - Demo wallets (sponsor, learner, mentor, Juno issuer) are created and funded on testnet by a setup script. Secrets live in `.env.local`, never committed
 - Keep state simple (a JSON file or SQLite) — no heavy database
 
@@ -63,21 +64,6 @@ Helpful: Stellar's agentic payments skill for Claude Code:
 ## The app: mobile-first
 
 Design for a 390 px wide phone first, then let it widen gracefully on desktop (centre the app in a max 480 px column on large screens). Touch targets at least 44 px. Bottom tab bar for navigation. A small role switcher in the top bar (Learner / Mentor / Sponsor) replaces logins for the demo.
-
-Screens:
-
-Learner (default role)
-- **Home** `/`: greeting, learning wallet card (balance in USDC, "funded by your sponsor"), "Ask your study agent" button, skill fan progress (coins earned out of 5), recent activity chips
-- **Agent** `/agent`: chat with the study agent. Flow: free resource first → if still stuck, an offer card ("A mentor review costs 0.50 USDC. Book it?" with Book / Not now) → x402 payment → neon "Done! Mentor paid." chip with explorer link
-- **Skills** `/skills`: the fan with earned coins, each coin opens its milestone and explorer link; certificate card when the track is done; "Find work on Stallion" button
-- **Certificate** `/certificate/[id]`: printable certificate with name, skill, mentor, date, QR code; download as PDF
-- **Verify** `/verify/[id]`: public page anyone can open from the QR to check the certificate against Stellar
-
-Mentor
-- **Inbox** `/mentor`: review requests (paid ones only), earnings total, "Mark review done" → records the skill coin on Stellar
-
-Sponsor
-- **Dashboard** `/sponsor`: "Fund Ada's wallet" button, learner balance, list of payments (what, amount, explorer link), skills earned
 
 Every on-chain action shows a loading state, then a success chip with an explorer link, or a friendly error.
 
@@ -93,13 +79,24 @@ Every on-chain action shows a loading state, then a success chip with an explore
 
 Design for a 390px-wide phone first, then scale up. On phones: a bottom tab bar per role. On desktop: the same screens in a centred column (max-width ~480px for learner/mentor, wider for the sponsor dashboard). Every tap target at least 44px. No horizontal scrolling.
 
-App shell: header with the juno logo + a role switcher (Learner / Mentor / Sponsor) instead of logins.
+App shell: header with the juno logo. Learners sign in; mentors and sponsors use a demo role switcher for now.
 
-Learner (tabs: Home, Agent, Skills, Profile)
-- **Home**: learning wallet balance, "Ask your study agent" button, her fan progress (coins earned out of 5), recent activity chips
-- **Agent**: chat with the study agent. Suggests free resources first. Paid help appears as a card with the price and "Book review" / "Not now". After paying: a neon "Done! Mentor paid" chip with an explorer link
-- **Skills**: the logo design track as 5 milestones; finished ones show their skill coin + explorer link
-- **Profile**: certificates (view PDF, copy verify link), "Find work on Stallion" button, resume (stretch)
+Routes: `/` landing, `/signup`, `/login`, `/app` dashboard, `/app/courses/[slug]` details, `/app/courses/[slug]/learn`. Planned: `/app/skills`, `/app/profile` (certificates at `/certificate/[id]`), `/mentor`, `/sponsor`, public `/verify/[id]`.
+
+**Learner flow (build this first):** Landing page → "Get started" → Create account → Dashboard → Course details → Start course. Returning learners: Landing page → Log in → Dashboard.
+
+- **Create account**: name, email and password (or one simple auth provider), nothing else. On sign-up, create her Stellar testnet wallet automatically in the background; she never sees keys or blockchain words
+- **Log in**: email and password
+- **Dashboard**: the courses available as a grid of course cards (title, level, length). Juno.ai is on the dashboard too
+- **Course details**: what she'll learn, the milestones, length, and a "Start course" button. Starting a course leads into the learning flow (agent chat, paid mentor review, skill coins), built later
+- **Juno.ai**: the AI assistant on the dashboard. On a phone it opens as a full-screen sheet; on desktop as a side panel. It answers questions about Juno and the courses, and recommends courses; each recommendation is a course card that opens Course details. Seed it with the course list so its answers and recommendations match real courses
+
+Course data: start with 3–5 courses in a typed local file (e.g. Logo design, Bookkeeping basics, Intro to coding, Digital marketing). Logo design is the full demo course; the others can be shorter.
+
+Later in the learner flow (after the above works):
+- **Course in progress**: chat with the study agent. Suggests free resources first. Paid help appears as a card with the price and "Book review" / "Not now". After paying: a neon "Done! Mentor paid" chip with an explorer link
+- **Skills**: the course's milestones; finished ones show their skill coin + explorer link
+- **Profile**: wallet balance, certificates (view PDF, copy verify link), "Find work on Stallion" button, resume (stretch)
 
 Mentor (tabs: Inbox, Earnings)
 - **Inbox**: paid review requests; open one, write feedback, "Mark review done" (this records the skill coin)
@@ -113,6 +110,16 @@ Public
 - **/verify/[id]**: certificate verification page (the QR code points here): learner name, skill, date, mentor, and the Stellar record
 
 Every screen needs: a loading state, an empty state, and a friendly error state (never a bare "—").
+
+## Motion
+
+Landing page scroll animation, kept subtle:
+- Each section fades in and rises about 16px as it scrolls into view (≈500ms, ease-out), once only
+- Cards inside a section stagger by about 80ms
+- The hero coin fan's coins rise in one after another on page load, the purple centre coin last
+- Use CSS plus a small IntersectionObserver hook (or CSS scroll-driven animations); no animation library
+- Respect `prefers-reduced-motion`: show everything instantly
+- Content must be visible without JavaScript (animate from a class added by JS, never hide by default in CSS)
 
 ## Brand
 

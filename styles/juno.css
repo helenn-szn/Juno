@@ -108,3 +108,39 @@
 .dark .bg-button-primary {
   --color-text-white: var(--color-dark-green);
 }
+
+/* Landing motion (see components/landing-motion.tsx). Elements are only hidden
+ * once JavaScript adds .reveal-hidden, so the page works without it. */
+[data-reveal] {
+  transition:
+    opacity 500ms ease-out,
+    transform 500ms ease-out;
+}
+[data-reveal].reveal-hidden {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+/* The hero coins rise along their stems on load. */
+@keyframes coin-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+.coin-rise {
+  animation: coin-rise 600ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    transition: none;
+  }
+  [data-reveal].reveal-hidden {
+    opacity: 1;
+    transform: none;
+  }
+  .coin-rise {
+    animation: none;
+  }
+}
