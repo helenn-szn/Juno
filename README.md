@@ -10,7 +10,11 @@ npm run setup   # creates 4 testnet wallets and gives Ada 20 USDC
 npm run dev     # http://localhost:3000
 ```
 
-The landing page is at `/`. Press **Get started**, then **Get a mentor review · 0.50 USDC**. Ada's balance drops by 0.50, the mentor's rises by 0.50, and the arrow opens the payment on the Stellar explorer.
+The landing page is at `/`. Press **Get started** and create an account. Her testnet wallet is made for her in the background. Pick a course, or tap **Ask Juno.ai**.
+
+Juno.ai needs an Anthropic key in `.env.local` (`ANTHROPIC_API_KEY=...`). Without one it says it can't answer.
+
+The 0.50 USDC mentor payment from step 1 still works from the terminal (below). Its button returns inside a course.
 
 ## Check it from the terminal
 

@@ -84,7 +84,13 @@
   --color-text-secondary: #cfe3dd;
   --color-text-tertiary: #a9c4bf;
 
+  /* Fields and chips: an inset, slightly darker green instead of BoardUI's grey */
+  --color-background-tertiary-default: color-mix(in srgb, var(--color-dark-green) 70%, black);
+  --color-background-tertiary-hover: color-mix(in srgb, var(--color-dark-green) 55%, black);
+
   --color-border-button-default: color-mix(in srgb, var(--color-mint) 10%, transparent);
+  --color-border-button-hover: color-mix(in srgb, var(--color-mint) 30%, transparent);
+  --color-border-button-active: color-mix(in srgb, var(--color-mint) 45%, transparent);
   --color-separator-border: #3c5a55;
   --color-border-focus-ring: var(--color-radiant);
 

@@ -150,7 +150,13 @@ Voice: the proud mentor. Warm, plain, celebrating.
 ## Code map
 
 - `app/page.tsx`: the landing page, built from `Landing.dc.html` (copy as written)
-- `app/app/page.tsx`: the app (for now: balances and the mentor review button)
+- `app/signup`, `app/login`, `app/actions.ts`: Create account, Log in, Log out, Start course (server actions). Signing up opens her testnet wallet in the background (`setUpWallet`)
+- `app/app/page.tsx`: the dashboard (course cards + Juno.ai). `app/app/courses/[slug]`: Course details; `/learn` is where the study agent lands next
+- `proxy.ts`: signed out → /app goes to Log in; signed in → Log in/Create account go to /app
+- `lib/session.ts`: signed cookie. `lib/users.ts`: learners in `data/users.json` (local only, never committed)
+- `lib/courses.ts`: the course list (typed). Juno.ai is seeded with it
+- `lib/juno-ai.ts`, `app/api/juno-ai`, `components/juno-ai.tsx`: Juno.ai (Claude call, answers + course slugs). Needs `ANTHROPIC_API_KEY`
+- `components/mentor-review.tsx`: step 1's pay button, unused for now; it returns inside the course flow
 - `components/coin-fan.tsx`: the logo
 - `lib/constants.ts`: network, price, explorer links (safe in the browser)
 - `lib/stellar.ts`: wallets and balances (server and scripts)

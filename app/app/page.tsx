@@ -1,61 +1,49 @@
+// The learner's dashboard: her courses, and Juno.ai.
 import { Suspense } from "react";
-import Link from "next/link";
-import { connection } from "next/server";
-import { CoinFan } from "@/components/coin-fan";
-import { MentorReview } from "@/components/mentor-review";
-import { explorer } from "@/lib/constants";
-import { usdcBalance, wallet } from "@/lib/stellar";
+import { CourseCard } from "@/components/course-card";
+import { JunoAi } from "@/components/juno-ai";
+import { courses } from "@/lib/courses";
+import { currentUser } from "@/lib/session";
 
-const people = [
-  { name: "Ada", role: "learner" },
-  { name: "Mentor", role: "mentor" },
-] as const;
-
-export default function Home() {
+export default function Dashboard() {
   return (
-    <main className="flex min-h-dvh flex-col p-6">
-      <Link href="/" className="flex items-center gap-1.5 self-start rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-        <CoinFan className="h-6 w-8.5" />
-        <span className="text-title-3-medium text-text-accent">juno</span>
-      </Link>
-      <div className="m-auto flex w-full max-w-sm flex-col gap-4 py-12">
-        <ul className="divide-y divide-separator-border overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default">
-          <Suspense fallback={people.map((p) => <Row key={p.role} name={p.name} />)}>
-            <Balances />
-          </Suspense>
-        </ul>
-        <MentorReview />
-      </div>
+    <main className="flex flex-col gap-8">
+      <Suspense fallback={<Heading name="" />}>
+        <Greeting />
+      </Suspense>
+      <JunoAi />
+      <section aria-labelledby="courses" className="flex flex-col gap-4">
+        <h2 id="courses" className="text-headline-medium">Courses</h2>
+        <Suspense fallback={<CourseGrid started={[]} />}>
+          <Courses />
+        </Suspense>
+      </section>
     </main>
   );
 }
 
-async function Balances() {
-  await connection(); // fresh from Stellar on every visit
-  return Promise.all(
-    people.map(async ({ name, role }) => {
-      const address = wallet(role)?.publicKey();
-      const balance = address ? await usdcBalance(address) : undefined;
-      return <Row key={role} name={name} balance={balance} href={address && explorer.account(address)} />;
-    }),
-  );
+async function Greeting() {
+  const user = await currentUser();
+  return <Heading name={user?.name.split(" ")[0] ?? ""} />;
 }
 
-function Row({ name, balance, href }: { name: string; balance?: number; href?: string }) {
+function Heading({ name }: { name: string }) {
+  return <h1 className="min-h-9 text-title-1-medium">{name ? `Hi, ${name}` : ""}</h1>;
+}
+
+async function Courses() {
+  const user = await currentUser();
+  return <CourseGrid started={user?.startedCourses ?? []} />;
+}
+
+function CourseGrid({ started }: { started: string[] }) {
   return (
-    <li>
-      <a
-        href={href}
-        target="_blank"
-        rel="noreferrer"
-        className="flex items-center justify-between px-5 py-4 outline-none hover:bg-background-primary-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-border-focus-ring"
-      >
-        <span className="text-body-regular text-text-secondary">{name}</span>
-        <span className="text-headline-medium tabular-nums">
-          {balance === undefined ? "—" : balance.toFixed(2)}
-          <span className="text-text-tertiary"> USDC</span>
-        </span>
-      </a>
-    </li>
+    <ul className="grid gap-4 sm:grid-cols-2">
+      {courses.map((course) => (
+        <li key={course.slug} className="flex">
+          <CourseCard course={course} started={started.includes(course.slug)} className="flex-1" />
+        </li>
+      ))}
+    </ul>
   );
 }

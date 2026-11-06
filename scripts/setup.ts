@@ -1,46 +1,22 @@
 // npm run setup
 //
 // Creates the demo wallets on Stellar testnet and gets Ada's wallet ready:
-//   1. Sponsor, learner (Ada), mentor and juno wallets, saved to .env.local
+//   1. Sponsor, learner (Ada), mentor and juno wallets, plus a session secret, saved to .env.local
 //   2. Free test XLM from Friendbot (pays the tiny network fees)
 //   3. A USDC trustline on each wallet (permission to hold USDC)
 //   4. The sponsor buys test USDC on the testnet exchange and sends Ada 20
 //
 // Safe to run again: it keeps existing wallets and only does what's missing.
 import fs from "node:fs";
-import { Asset, BASE_FEE, Keypair, Networks, Operation, TransactionBuilder, xdr } from "@stellar/stellar-sdk";
+import crypto from "node:crypto";
+import { Asset, Keypair, Operation } from "@stellar/stellar-sdk";
 import { explorer } from "../lib/constants";
-import { ROLES, USDC, horizon, usdcBalance, type Role } from "../lib/stellar";
+import { ROLES, USDC, horizon, openWallet, submit, usdcBalance, type Role } from "../lib/stellar";
 
 const ENV_FILE = ".env.local";
 const LEARNER_START_BALANCE = 20;
 
 if (fs.existsSync(ENV_FILE)) process.loadEnvFile(ENV_FILE);
-
-async function exists(address: string) {
-  try {
-    await horizon.loadAccount(address);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function submit(source: Keypair, ...ops: xdr.Operation[]) {
-  const account = await horizon.loadAccount(source.publicKey());
-  const tx = new TransactionBuilder(account, { fee: BASE_FEE, networkPassphrase: Networks.TESTNET })
-    .setTimeout(60);
-  ops.forEach((op) => tx.addOperation(op));
-  const built = tx.build();
-  built.sign(source);
-  const result = await horizon.submitTransaction(built);
-  return result.hash;
-}
-
-async function hasTrustline(address: string) {
-  const account = await horizon.loadAccount(address);
-  return account.balances.some((b) => "asset_code" in b && b.asset_code === USDC.code && b.asset_issuer === USDC.issuer);
-}
 
 async function main() {
   // 1. Wallets
@@ -49,22 +25,17 @@ async function main() {
     const secret = process.env[`${role.toUpperCase()}_SECRET`];
     wallets[role] = secret ? Keypair.fromSecret(secret) : Keypair.random();
   }
-  fs.writeFileSync(
-    ENV_FILE,
-    ROLES.map((r) => `${r.toUpperCase()}_SECRET=${wallets[r].secret()}`).join("\n") + "\n",
+  // Keep anything else already in .env.local (e.g. ANTHROPIC_API_KEY).
+  const env = new Map(
+    (fs.existsSync(ENV_FILE) ? fs.readFileSync(ENV_FILE, "utf8") : "")
+      .split("\n").filter((line) => line.includes("=")).map((line) => [line.slice(0, line.indexOf("=")), line.slice(line.indexOf("=") + 1)]),
   );
+  for (const role of ROLES) env.set(`${role.toUpperCase()}_SECRET`, wallets[role].secret());
+  if (!env.get("SESSION_SECRET")) env.set("SESSION_SECRET", crypto.randomBytes(32).toString("hex"));
+  fs.writeFileSync(ENV_FILE, [...env].map(([key, value]) => `${key}=${value}`).join("\n") + "\n");
 
   // 2 + 3. Friendbot and trustlines
-  for (const role of ROLES) {
-    const kp = wallets[role];
-    if (!(await exists(kp.publicKey()))) {
-      const res = await fetch(`https://friendbot.stellar.org?addr=${kp.publicKey()}`);
-      if (!res.ok) throw new Error(`Friendbot could not fund the ${role} wallet (${res.status})`);
-    }
-    if (!(await hasTrustline(kp.publicKey()))) {
-      await submit(kp, Operation.changeTrust({ asset: USDC }));
-    }
-  }
+  for (const role of ROLES) await openWallet(wallets[role]);
 
   // 4. Fund Ada up to 20 USDC
   const { sponsor, learner } = wallets;

@@ -102,7 +102,7 @@ export default function Landing() {
   return (
     <>
       <header className="mx-auto flex max-w-312 flex-wrap items-center justify-between gap-4 px-6 py-5">
-        <a href="#top" className="flex items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
+        <a href="#top" className="flex min-h-11 items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
           <CoinFan className="h-8 w-11.5" />
           <span className="text-wordmark text-text-accent">juno</span>
         </a>
