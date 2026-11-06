@@ -6,6 +6,9 @@ import { MENTOR_REVIEW_PRICE, NETWORK } from "@/lib/constants";
 import { wallet } from "@/lib/stellar";
 import { x402Server } from "@/lib/x402";
 
+// Stellar can take a while; Vercel stops functions after 10 seconds by default.
+export const maxDuration = 60;
+
 const mentor = wallet("mentor");
 
 const review = async () =>

@@ -56,7 +56,7 @@ Out (fake or skip): mentor and sponsor logins (use a demo role switcher for them
 - The agent is an LLM call with tools: `suggestFreeResource`, `offerPaidHelp`, `payForService` (x402 client, only after user confirms), `checkBudget`
 - LLM: Gemini through `@google/genai` (`GOOGLE_GENERATIVE_AI_API_KEY`, model `gemini-flash-latest`). Juno.ai uses it today; the study agent will too
 - Demo wallets (sponsor, learner, mentor, Juno issuer) are created and funded on testnet by a setup script. Secrets live in `.env.local`, never committed
-- Keep state simple (a JSON file or SQLite) — no heavy database
+- Keep state simple. Learner accounts: `data/users.json` locally, Upstash Redis on Vercel (`lib/users.ts` picks one from the environment). No heavy database
 
 Helpful: Stellar's agentic payments skill for Claude Code:
 `npx skills add https://github.com/stellar/stellar-dev-skill --skill agentic-payments`
@@ -160,7 +160,7 @@ Voice: the proud mentor. Warm, plain, celebrating.
 - `app/signup`, `app/login`, `app/actions.ts`: Create account, Log in, Log out, Start course (server actions). Signing up opens her testnet wallet in the background (`setUpWallet`)
 - `app/app/page.tsx`: the dashboard (course cards + Juno.ai). `app/app/courses/[slug]`: Course details; `/learn` is where the study agent lands next
 - `proxy.ts`: signed out → /app goes to Log in; signed in → Log in/Create account go to /app
-- `lib/session.ts`: signed cookie. `lib/users.ts`: learners in `data/users.json` (local only, never committed)
+- `lib/session.ts`: signed cookie. `lib/users.ts`: learners, in Redis when `UPSTASH_REDIS_REST_URL`/`KV_REST_API_URL` is set, else `data/users.json` (never committed)
 - `lib/courses.ts`: the course list (typed). Juno.ai is seeded with it
 - `lib/juno-ai.ts`, `app/api/juno-ai`, `components/juno-ai.tsx`: Juno.ai (one Gemini call, answers + course slugs). Needs `GOOGLE_GENERATIVE_AI_API_KEY`
 - `components/mentor-review.tsx`: step 1's pay button, unused for now; it returns inside the course flow

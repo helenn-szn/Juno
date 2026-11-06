@@ -1,4 +1,6 @@
-// Learner accounts, kept in one JSON file (data/users.json, never committed).
+// Learner accounts. On the live site they sit in Redis (Upstash, added from the
+// Vercel dashboard). On your own machine they sit in data/users.json, never
+// committed, so local development needs no setup.
 // Passwords are stored as scrypt hashes. Each learner gets a testnet wallet,
 // created in the background after sign-up; she never sees the keys.
 import "server-only";
@@ -6,6 +8,7 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Keypair } from "@stellar/stellar-sdk";
+import { Redis } from "@upstash/redis";
 import { openWallet } from "./stellar";
 
 export type User = {
@@ -18,9 +21,12 @@ export type User = {
   wallet?: { publicKey: string; secret: string };
 };
 
+// Vercel's Upstash integration sets KV_REST_API_*; Upstash itself sets UPSTASH_REDIS_REST_*.
+const redis = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL ? Redis.fromEnv() : null;
+
 const FILE = path.join(process.cwd(), "data", "users.json");
 
-async function readAll(): Promise<User[]> {
+async function readFile(): Promise<User[]> {
   try {
     return JSON.parse(await fs.readFile(FILE, "utf8"));
   } catch {
@@ -28,17 +34,23 @@ async function readAll(): Promise<User[]> {
   }
 }
 
-async function writeAll(users: User[]) {
+async function writeFile(users: User[]) {
   await fs.mkdir(path.dirname(FILE), { recursive: true });
   await fs.writeFile(FILE, JSON.stringify(users, null, 2));
 }
 
 export async function findUserById(id: string) {
-  return (await readAll()).find((user) => user.id === id);
+  if (redis) return (await redis.get<User>(`user:${id}`)) ?? undefined;
+  return (await readFile()).find((user) => user.id === id);
 }
 
 export async function findUserByEmail(email: string) {
-  return (await readAll()).find((user) => user.email === email.toLowerCase());
+  const address = email.toLowerCase();
+  if (redis) {
+    const id = await redis.get<string>(`email:${address}`);
+    return id ? findUserById(id) : undefined;
+  }
+  return (await readFile()).find((user) => user.email === address);
 }
 
 export async function createUser(name: string, email: string, password: string): Promise<User> {
@@ -50,13 +62,22 @@ export async function createUser(name: string, email: string, password: string):
     createdAt: new Date().toISOString(),
     startedCourses: [],
   };
-  await writeAll([...(await readAll()), user]);
+  if (redis) {
+    // Claiming the email is atomic, so two sign-ups can never share one address.
+    if (!(await redis.set(`email:${user.email}`, user.id, { nx: true }))) throw new Error("That email is taken.");
+    await redis.set(`user:${user.id}`, user);
+  } else {
+    await writeFile([...(await readFile()), user]);
+  }
   return user;
 }
 
 export async function updateUser(id: string, change: (user: User) => User) {
-  const users = await readAll();
-  await writeAll(users.map((user) => (user.id === id ? change(user) : user)));
+  const user = await findUserById(id);
+  if (!user) return;
+  const next = change(user);
+  if (redis) await redis.set(`user:${id}`, next);
+  else await writeFile((await readFile()).map((u) => (u.id === id ? next : u)));
 }
 
 export function hashPassword(password: string) {
