@@ -19,6 +19,7 @@ export type User = {
   createdAt: string;
   startedCourses: string[];
   modulesDone?: Record<string, number>; // finished modules per course slug
+  lessonsDone?: Record<string, number[]>; // finished lessons of her current module, per course slug
   wallet?: { publicKey: string; secret: string };
 };
 
