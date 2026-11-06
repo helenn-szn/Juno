@@ -48,3 +48,12 @@ export async function openWallet(keypair: Keypair) {
   );
   if (!holdsUsdc) await submit(keypair, Operation.changeTrust({ asset: USDC }));
 }
+
+// A brand-new wallet may not exist on the network yet; that counts as 0.
+export async function usdcBalanceOrZero(address: string): Promise<number> {
+  try {
+    return await usdcBalance(address);
+  } catch {
+    return 0;
+  }
+}

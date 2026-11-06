@@ -10,9 +10,9 @@ npm run setup   # creates 4 testnet wallets and gives Ada 20 USDC
 npm run dev     # http://localhost:3000
 ```
 
-The landing page is at `/`. Press **Get started** and create an account. Her testnet wallet is made for her in the background. Pick a course, or tap **Ask Juno.ai**.
+The landing page is at `/`. Press **Get started** and create an account. Her testnet wallet is made for her in the background. You land on the dashboard: pick a course, and tap the robot in the corner to ask Juno.ai.
 
-Juno.ai runs on Gemini and needs a Google key in `.env.local` (`GOOGLE_GENERATIVE_AI_API_KEY=...`, free at aistudio.google.com/apikey). Without one it says it can't answer.
+Juno.ai runs on Gemini and needs a free Google key in `.env.local` (`GOOGLE_GENERATIVE_AI_API_KEY=...`, from aistudio.google.com/apikey). Without one it says it can't answer.
 
 The 0.50 USDC mentor payment from step 1 still works from the terminal (below). Its button returns inside a course.
 

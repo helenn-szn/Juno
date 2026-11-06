@@ -1,14 +1,19 @@
-// Course details: what she'll learn, the milestones, the length, and Start course.
+// Course details: a lesson player, what the course is about, this module's
+// lessons, and on the right her progress, every module, and what she earns.
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { RiArrowLeftLine } from "@remixicon/react";
+import { notFound, redirect } from "next/navigation";
+import { RiPlayFill } from "@remixicon/react";
 import { startCourse } from "@/app/actions";
-import { Chip } from "@/components/base/badges/chip";
 import { Button } from "@/components/base/buttons/button";
+import { CoinFan, CoinIcon } from "@/components/coin-fan";
+import { LessonList } from "@/components/lesson-list";
+import { ModuleList } from "@/components/module-list";
+import { PageGrid, Section } from "@/components/page-grid";
 import { PageSpinner } from "@/components/page-spinner";
-import { courses, findCourse } from "@/lib/courses";
+import { ProgressLine, ProgressRing } from "@/components/progress";
+import { TopBar } from "@/components/top-bar";
+import { courses, findCourse, progressFor, type Course } from "@/lib/courses";
 import { currentUser } from "@/lib/session";
 
 export function generateStaticParams() {
@@ -31,66 +36,98 @@ export default function CourseDetails(props: PageProps<"/app/courses/[slug]">) {
 async function Details({ params }: Pick<PageProps<"/app/courses/[slug]">, "params">) {
   const course = findCourse((await params).slug);
   if (!course) notFound();
-
   return (
-    <main className="mx-auto flex w-full max-w-120 flex-col gap-8 pb-8">
-      <Link
-        href="/app"
-        className="-ms-2 flex h-11 items-center gap-1 self-start rounded-full px-2 text-body-medium text-text-secondary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-border-focus-ring"
-      >
-        <RiArrowLeftLine className="size-5" aria-hidden />
-        Courses
-      </Link>
-
-      <header className="flex flex-col gap-3">
-        <h1 className="text-title-1-medium">{course.title}</h1>
-        <div className="flex items-center gap-2">
-          <Chip variant="caption">{course.level}</Chip>
-          <Chip variant="caption">{course.length}</Chip>
-        </div>
-        <p className="text-body-regular text-text-secondary">{course.summary}</p>
-      </header>
-
-      <section aria-labelledby="learn" className="flex flex-col gap-3">
-        <h2 id="learn" className="text-headline-medium">What you&apos;ll learn</h2>
-        <ul className="flex flex-col gap-2 text-body-regular text-text-secondary">
-          {course.outcomes.map((outcome) => (
-            <li key={outcome} className="flex gap-3">
-              <span className="mt-2 size-1.5 shrink-0 rounded-full bg-radiant" aria-hidden />
-              {outcome}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section aria-labelledby="milestones" className="flex flex-col gap-3">
-        <h2 id="milestones" className="text-headline-medium">Milestones</h2>
-        <ol className="flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default">
-          {course.milestones.map((milestone, index) => (
-            <li key={milestone} className="flex items-center gap-3 border-b border-separator-border px-5 py-3.5 text-body-regular last:border-b-0">
-              <span className="w-4 text-text-tertiary tabular-nums">{index + 1}</span>
-              {milestone}
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <Suspense fallback={<StartButton slug={course.slug} label="Start course" />}>
-        <Start slug={course.slug} />
+    <>
+      <TopBar title={course.title} back={{ href: "/app/courses", label: "Back to courses" }} />
+      <Suspense fallback={<PageSpinner />}>
+        <Body course={course} />
       </Suspense>
-    </main>
+    </>
   );
 }
 
-async function Start({ slug }: { slug: string }) {
-  const user = await currentUser();
-  return <StartButton slug={slug} label={user?.startedCourses.includes(slug) ? "Continue course" : "Start course"} />;
-}
+const mmss = (minutes = 0) => `${String(minutes).padStart(2, "0")}:00`;
 
-function StartButton({ slug, label }: { slug: string; label: string }) {
+async function Body({ course }: { course: Course }) {
+  const user = await currentUser();
+  if (!user) redirect("/login");
+
+  const started = user.startedCourses.includes(course.slug);
+  const progress = progressFor(course, user.modulesDone?.[course.slug] ?? 0);
+  const unit = progress.currentModule ?? course.modules[course.modules.length - 1];
+  const moduleNumber = course.modules.indexOf(unit) + 1;
+  const lesson = unit.lessons[0];
+  const start = startCourse.bind(null, course.slug);
+
   return (
-    <form action={startCourse.bind(null, slug)}>
-      <Button type="submit" className="h-12 w-full rounded-full shadow-none">{label}</Button>
-    </form>
+    <PageGrid
+      main={
+        <>
+          <div className="relative flex min-h-60 flex-col justify-between gap-6 overflow-hidden rounded-[20px] bg-green p-6 sm:aspect-video sm:p-7">
+            <CoinFan surface="stroke-green" className="absolute -right-1 top-5 w-[40%] max-w-105 sm:top-auto sm:-right-[2%] sm:bottom-[14%] sm:w-[46%]" />
+            <div className="relative flex max-w-[60%] flex-col gap-2.5">
+              <span className="text-section leading-[1.05]">{lesson.title}</span>
+              <span className="text-lead-sm font-medium text-radiant">
+                Module {moduleNumber} · Lesson 1
+              </span>
+            </div>
+            <div className="relative flex flex-col gap-3">
+              <ProgressLine percent={0} size="sm" label="Lesson progress" />
+              <div className="flex items-center gap-3">
+                <form action={start}>
+                  <Button type="submit" iconOnly leadingIcon={RiPlayFill} aria-label={started ? "Continue lesson" : "Start lesson"} className="size-11 rounded-full p-0 shadow-none" />
+                </form>
+                <span className="text-body-regular text-text-secondary tabular-nums">
+                  00:00 / {mmss(lesson.minutes)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <Section title="About this course" id="about">
+            <p className="max-w-170 text-copy text-text-secondary">{course.summary}</p>
+          </Section>
+
+          <Section title={`Module ${moduleNumber} lessons`} id="lessons">
+            <LessonList lessons={unit.lessons} started={started} />
+          </Section>
+        </>
+      }
+      side={
+        <>
+          <div className="flex flex-col items-center gap-4 rounded-2xl bg-green p-5.5">
+            <h2 className="self-start text-title-3-medium">Course progress</h2>
+            <ProgressRing percent={progress.percent} />
+            <span className="text-body-regular text-text-secondary">
+              {progress.done} of {course.modules.length} modules
+            </span>
+            <form action={start} className="w-full">
+              <Button type="submit" className="h-12 w-full rounded-full text-headline-medium shadow-none">
+                {started ? "Continue learning" : "Start course"}
+              </Button>
+            </form>
+          </div>
+
+          <div className="flex flex-col gap-1 rounded-2xl border border-line p-5">
+            <h2 className="mb-2 text-title-3-medium">Modules</h2>
+            <ModuleList course={course} done={progress.done} />
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-2xl border border-line p-5">
+            <h2 className="mb-1 text-title-3-medium">You earn</h2>
+            <p className="flex items-center gap-3 text-copy-sm">
+              <CoinIcon className="h-7.5 w-6.5" />
+              <span className="flex-1">Skill coins</span>
+              <span className="text-body-medium">{course.modules.length}</span>
+            </p>
+            <p className="flex items-center gap-3 text-copy-sm">
+              <CoinIcon tone="purple" className="h-7.5 w-6.5" />
+              <span className="flex-1">Certificate</span>
+              <span className="text-body-medium">1</span>
+            </p>
+          </div>
+        </>
+      }
+    />
   );
 }

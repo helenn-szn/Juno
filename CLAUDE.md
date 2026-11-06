@@ -43,7 +43,7 @@ In:
 
 Stretch: resume filled from a Juno-provided template.
 
-Out (fake or skip): mentor and sponsor logins (use a demo role switcher for them), real mentor matching (one demo mentor), full content for every course (only Logo design is complete), mobile app, personal website builder.
+Out (fake or skip): mentor and sponsor logins (use a demo role switcher for them), real mentor matching (one demo mentor), full content for every course (only Build AI Agents is complete), mobile app, personal website builder.
 
 ## Tech plan
 
@@ -54,9 +54,9 @@ Out (fake or skip): mentor and sponsor logins (use a demo role switcher for them
 - x402 on Stellar: follow the official docs at https://developers.stellar.org/docs/build/agentic-payments/x402. We run the official `@x402/stellar` facilitator inside the app, and the juno wallet pays the network fees (the hosted Coinbase facilitator timed out and still charged the learner). Do not write verification/settlement code ourselves
 - The mentor review is an API route protected by x402 (returns 402 with a price, accepts payment proof)
 - The agent is an LLM call with tools: `suggestFreeResource`, `offerPaidHelp`, `payForService` (x402 client, only after user confirms), `checkBudget`
-- LLM: Gemini through `@google/genai` (`GOOGLE_GENERATIVE_AI_API_KEY`, model `gemini-flash-latest`). Juno.ai uses it today; the study agent will too
 - Demo wallets (sponsor, learner, mentor, Juno issuer) are created and funded on testnet by a setup script. Secrets live in `.env.local`, never committed
 - Keep state simple. Learner accounts: `data/users.json` locally, Upstash Redis on Vercel (`lib/users.ts` picks one from the environment). No heavy database
+- AI (Juno.ai and, later, the study agent): Google Gemini on the free tier, through the Vercel AI SDK (`ai` + `@ai-sdk/google`). Use the newest Flash model on the free tier (check the model list and limits in Google AI Studio). Juno.ai gets two tools, `listCourses` and `getCourse`, reading the course file, and shows recommendations as clickable course cards. Stream replies. Key lives server-side in `GOOGLE_GENERATIVE_AI_API_KEY`. Handle rate-limit errors with a friendly "Juno.ai is busy, try again in a moment". Keep the provider in one file so it can be swapped later
 
 Helpful: Stellar's agentic payments skill for Claude Code:
 `npx skills add https://github.com/stellar/stellar-dev-skill --skill agentic-payments`
@@ -81,17 +81,30 @@ Design for a 390px-wide phone first, then scale up. On phones: a bottom tab bar 
 
 App shell: header with the juno logo. Learners sign in; mentors and sponsors use a demo role switcher for now.
 
-Routes: `/` landing, `/signup`, `/login`, `/app` dashboard, `/app/courses/[slug]` details, `/app/courses/[slug]/learn`. Planned: `/app/skills`, `/app/profile` (certificates at `/certificate/[id]`), `/mentor`, `/sponsor`, public `/verify/[id]`.
+Routes: `/` landing, `/signup`, `/login`, `/app` dashboard, `/app/courses` all courses, `/app/courses/[slug]` details, `/app/courses/[slug]/learn`, `/app/learning` my learning. Planned: `/app/certificates`, `/app/wallet`, `/app/settings`, `/mentor`, `/sponsor`, public `/verify/[id]`.
 
 **Learner flow (build this first):** Landing page → "Get started" → Create account → Dashboard → Course details → Start course. Returning learners: Landing page → Log in → Dashboard.
 
 - **Create account**: name, email and password (or one simple auth provider), nothing else. On sign-up, create her Stellar testnet wallet automatically in the background; she never sees keys or blockchain words
 - **Log in**: email and password
-- **Dashboard**: the courses available as a grid of course cards (title, level, length). Juno.ai is on the dashboard too
-- **Course details**: what she'll learn, the milestones, length, and a "Start course" button. Starting a course leads into the learning flow (agent chat, paid mentor review, skill coins), built later
-- **Juno.ai**: the AI assistant on the dashboard. On a phone it opens as a full-screen sheet; on desktop as a side panel. It answers questions about Juno and the courses, and recommends courses; each recommendation is a course card that opens Course details. Seed it with the course list so its answers and recommendations match real courses
+Build these from the designs `AppDashboard.dc.html` and `AppCourse.dc.html`.
 
-Course data: start with 3–5 courses in a typed local file (e.g. Logo design, Bookkeeping basics, Intro to coding, Digital marketing). Logo design is the full demo course; the others can be shorter.
+- **Layout (both screens)**: left sidebar (logo; Dashboard, Courses, My learning, Certificates, Wallet, Settings; a purple "Find work on Stallion" card at the bottom), a top bar, a main column and a right column. On phones the sidebar becomes a bottom tab bar and the right column moves under the main column
+- **Dashboard**: "Continue learning" cards with progress bars and "Resume course"; "Recommended for you" grid of course cards (coloured cover with an icon, title, level and module count). Right column: her name, learning wallet balance, her coin fan of skills minted, and two stat tiles (courses in progress, certificates)
+- **Course details**: a large lesson player at the top (lesson title, module and lesson number, progress bar, play button), "About this course", and the current module's lessons (duration, title, status chip: Done / Watching / Hands-on / mentor review price). Right column: progress ring, "Continue learning" (or "Start course" if not started), the module list with done / current / not started / locked icons, and what she earns (skill coins, certificate)
+- **Juno.ai**: a floating rectangle in the bottom-right corner on every app screen: bot avatar, "Juno.ai", close button, the greeting "Hello there, what can I help you with?", two suggestion chips, and a message input with a send button. Closed, it shrinks to a round bot button in the same corner. On phones it opens as a full-screen sheet. It answers questions about Juno and the courses and recommends courses; each recommendation is a course card that opens Course details. It only recommends real courses from the course file
+
+Courses: **tech and AI only**, stored in a typed local file. Start with these six:
+| Course | Level | Modules |
+| --- | --- | --- |
+| Build AI Agents (full demo course) | Intermediate | 7 |
+| Prompt Engineering | Beginner | 5 |
+| AI Foundations | Beginner | 6 |
+| Python for Beginners | Beginner | 8 |
+| Data Analysis with AI | Intermediate | 6 |
+| Blockchain and Stellar Basics | Beginner | 5 |
+
+Build AI Agents modules: What is an AI agent, Prompts and tools, Giving agents memory, Agents that pay (x402), Build your first agent, Testing and safety, Capstone: ship an agent. The other courses can have short placeholder lessons.
 
 Later in the learner flow (after the above works):
 - **Course in progress**: chat with the study agent. Suggests free resources first. Paid help appears as a card with the price and "Book review" / "Not now". After paying: a neon "Done! Mentor paid" chip with an explorer link
@@ -158,13 +171,13 @@ Voice: the proud mentor. Warm, plain, celebrating.
 
 - `app/page.tsx`: the landing page, built from `Landing.dc.html` (copy as written)
 - `app/signup`, `app/login`, `app/actions.ts`: Create account, Log in, Log out, Start course (server actions). Signing up opens her testnet wallet in the background (`setUpWallet`)
-- `app/app/page.tsx`: the dashboard (course cards + Juno.ai). `app/app/courses/[slug]`: Course details; `/learn` is where the study agent lands next
+- `app/app/layout.tsx`: the app frame (sidebar on desktop, tab bar on phones, Juno.ai in the corner). Screens: `page.tsx` Dashboard, `courses/` all courses with `?q=` search, `courses/[slug]` Course details, `courses/[slug]/learn` (where the study agent lands next), `learning/`, `certificates/`, `wallet/`, `settings/`
+- `components/`: `top-bar` (title, search, account menu), `app-nav` (sidebar + tab bar), `course-card`, `continue-card`, `lesson-list`, `module-list`, `progress` (bar and ring), `coin-fan` (the logo, and her coins), `juno-chat` (the floating Juno.ai). `components/base/` is BoardUI
+- `lib/courses.ts`: the six courses, typed (modules, lessons, progress helpers). `modulesDone` on a learner is how far she is; the learning flow will update it
 - `proxy.ts`: signed out → /app goes to Log in; signed in → Log in/Create account go to /app
 - `lib/session.ts`: signed cookie. `lib/users.ts`: learners, in Redis when `UPSTASH_REDIS_REST_URL`/`KV_REST_API_URL` is set, else `data/users.json` (never committed)
-- `lib/courses.ts`: the course list (typed). Juno.ai is seeded with it
-- `lib/juno-ai.ts`, `app/api/juno-ai`, `components/juno-ai.tsx`: Juno.ai (one Gemini call, answers + course slugs). Needs `GOOGLE_GENERATIVE_AI_API_KEY`
+- `lib/ai.ts`: the AI provider (Gemini, one line to swap). `lib/juno-ai.ts` + `app/api/juno-ai`: Juno.ai (streams; tools `listCourses` and `getCourse`; marks a recommendation as `[course:slug]`). Needs `GOOGLE_GENERATIVE_AI_API_KEY`
 - `components/mentor-review.tsx`: step 1's pay button, unused for now; it returns inside the course flow
-- `components/coin-fan.tsx`: the logo
 - `lib/constants.ts`: network, price, explorer links (safe in the browser)
 - `lib/stellar.ts`: wallets and balances (server and scripts)
 - `lib/x402.ts`: x402 seller, in-app facilitator (juno wallet pays fees; the hosted one timed out and still charged), and the learner's payer (`payForMentorReview`, the future `payForService` tool)

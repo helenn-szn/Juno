@@ -18,6 +18,7 @@ export type User = {
   passwordHash: string;
   createdAt: string;
   startedCourses: string[];
+  modulesDone?: Record<string, number>; // finished modules per course slug
   wallet?: { publicKey: string; secret: string };
 };
 
