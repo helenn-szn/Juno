@@ -15,10 +15,12 @@
   --color-neon: #27eaa6;       /* only means "paid" */
   --color-purple: #8f93ff;     /* only means "new skill / proof" */
   --color-mint: #ebfff5;       /* text on dark, light backgrounds */
+  --color-line: #2c4a48;       /* dividers and quiet surfaces on dark-green */
 
   /* Coin shading for the logo */
   --color-coin-side: #9bc748;
   --color-coin-newest-side: #6266d4;
+  --color-coin-off-side: #1e3a3b;
 
   /* Brand meanings, as text colours */
   --color-text-accent: var(--color-radiant);

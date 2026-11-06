@@ -1,27 +1,18 @@
-// POST /api/juno-ai  { messages: [{ role, content }] }  →  { reply, courses }
-// Signed-in learners only. `courses` holds course slugs to show as cards.
+// POST /api/juno-ai  { messages: UIMessage[], page?: string }  →  a streamed reply.
+// Signed-in learners only.
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import { Message, askJuno, isJunoAiReady } from "@/lib/juno-ai";
+import { isAiReady } from "@/lib/ai";
+import { junoAi } from "@/lib/juno-ai";
 import { currentUser } from "@/lib/session";
 
-const Body = z.object({ messages: z.array(Message).min(1).max(40) });
-
 export async function POST(request: Request) {
-  if (!(await currentUser())) {
-    return NextResponse.json({ error: "signed-out" }, { status: 401 });
-  }
-  if (!isJunoAiReady()) {
-    return NextResponse.json({ error: "not-configured" }, { status: 503 });
-  }
-  const body = Body.safeParse(await request.json().catch(() => null));
-  if (!body.success || body.data.messages.at(-1)?.role !== "user") {
+  if (!(await currentUser())) return NextResponse.json({ error: "signed-out" }, { status: 401 });
+  if (!isAiReady()) return NextResponse.json({ error: "not-configured" }, { status: 503 });
+
+  const body = await request.json().catch(() => null);
+  if (!Array.isArray(body?.messages) || body.messages.length === 0) {
     return NextResponse.json({ error: "bad-request" }, { status: 400 });
   }
-  try {
-    return NextResponse.json(await askJuno(body.data.messages));
-  } catch (error) {
-    console.error("Juno.ai failed:", error);
-    return NextResponse.json({ error: "failed" }, { status: 502 });
-  }
+  // Only the recent conversation is sent to the model.
+  return junoAi(body.messages.slice(-20), typeof body.page === "string" ? body.page : undefined);
 }
