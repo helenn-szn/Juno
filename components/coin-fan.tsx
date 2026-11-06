@@ -41,7 +41,7 @@ type CoinFanProps = React.ComponentProps<"svg"> & {
   earned?: number;
   theme?: "dark" | "light";
   /** Colour of the coin outlines. Defaults to the surface the logo sits on. */
-  surface?: "stroke-dark-green" | "stroke-green" | "stroke-white";
+  surface?: "stroke-dark-green" | "stroke-green" | "stroke-white" | "stroke-footer";
 };
 
 export function CoinFan({ label, animate = false, earned = 5, theme = "dark", surface, ...svg }: CoinFanProps) {

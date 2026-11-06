@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { ButtonLink } from "@/components/base/buttons/button";
 import { CoinFan } from "@/components/coin-fan";
+import { LandingHeader } from "@/components/landing-header";
 import { LandingMotion } from "@/components/landing-motion";
 import { cx } from "@/utils/cx";
 
@@ -81,10 +82,34 @@ const audiences = [
   },
 ];
 
-const outcomes = [
-  { dot: "bg-purple", title: "Verified certificate", text: "PDF with a QR code to her Stellar record" },
-  { dot: "bg-radiant", title: "Resume, ready to send", text: "Filled from her skills using Juno templates" },
-  { dot: "bg-neon", title: "Find work on Stallion", text: "Matching bounties, paid out on Stellar" },
+const skills = ["AI agents", "Prompting", "x402"];
+const jobs = ["Support bot for a shop", "Prompt library for a startup"];
+
+const footerLinks = [
+  {
+    title: "Explore",
+    links: [
+      { href: "#how", label: "How it works" },
+      { href: "#who", label: "Who it's for" },
+      { href: "#work", label: "Skills to work" },
+    ],
+  },
+  {
+    title: "Get involved",
+    links: [
+      { href: "#start", label: "Start learning" },
+      { href: "#mentor", label: "Become a mentor" },
+      { href: "#sponsor", label: "Sponsor a woman" },
+    ],
+  },
+  {
+    title: "Built on",
+    links: [
+      { href: "https://stellar.org", label: "Stellar" },
+      { href: "https://developers.stellar.org/docs/build/agentic-payments/x402", label: "x402" },
+      { href: "https://stallion.so", label: "Stallion" },
+    ],
+  },
 ];
 
 const facts = [
@@ -97,26 +122,14 @@ const pill = "rounded-full shadow-none";
 const large = cx(pill, "h-13 px-5.5 text-cta");
 const outline = "border-mint bg-transparent text-mint hover:border-mint hover:bg-green";
 const eyebrow = "text-body-regular text-text-accent";
+const card = "flex flex-col gap-4.5 rounded-[20px] p-6";
 const grid = (min: string) => cx("grid gap-4", min);
 
 export default function Landing() {
   return (
     <>
       <LandingMotion />
-      <header className="mx-auto flex max-w-312 flex-wrap items-center justify-between gap-4 px-6 py-5">
-        <a href="#top" className="flex min-h-11 items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-          <CoinFan className="h-8 w-11.5" />
-          <span className="text-wordmark text-text-accent">juno</span>
-        </a>
-        <nav className="flex flex-wrap items-center gap-6 text-copy-sm">
-          <a href="#how" className="hover:text-text-accent">How it works</a>
-          <a href="#who" className="hover:text-text-accent">Who it&apos;s for</a>
-          <a href="#work" className="hover:text-text-accent">Skills to work</a>
-          <ButtonLink href={APP} className={cx(pill, "h-11 px-4.5 text-copy-sm font-medium")}>
-            Get started
-          </ButtonLink>
-        </nav>
-      </header>
+      <LandingHeader appHref={APP} />
 
       <main>
         <section id="top" className="mx-auto flex max-w-312 flex-wrap items-center gap-12 px-6 pt-14 pb-20">
@@ -208,26 +221,72 @@ export default function Landing() {
           </div>
         </section>
 
-        <section id="work" className="mx-auto flex max-w-312 flex-wrap items-center gap-12 px-6 py-22">
-          <div data-reveal className="flex min-w-0 grow basis-105 flex-col gap-4">
-            <span className={eyebrow}>From skills to work</span>
-            <h2 className="text-section">Learn it. Prove it. Get paid for it.</h2>
-            <p className="text-lead-sm text-text-secondary">
-              Every finished track earns a certificate anyone can verify on Stellar. Juno turns her proof into a resume
-              from our templates, then sends her to matching work on Stallion.
+        <section id="work" className="mx-auto flex max-w-312 flex-col gap-9 px-6 py-22">
+          <div data-reveal className="flex flex-wrap items-end justify-between gap-x-12 gap-y-4">
+            <div className="flex min-w-0 grow basis-105 flex-col gap-3">
+              <span className={eyebrow}>From skills to work</span>
+              <h2 className="text-section">Learn it. Prove it. Get paid for it.</h2>
+            </div>
+            <p className="min-w-0 grow basis-85 text-lead-sm text-text-secondary">
+              Her proof doesn&apos;t sit in a drawer. Juno turns every finished course into a certificate, a resume and a
+              path to paid work.
             </p>
           </div>
-          <ul className="flex min-w-0 grow basis-95 flex-col gap-3">
-            {outcomes.map((o) => (
-              <li key={o.title} data-reveal className="flex items-center gap-3.5 rounded-2xl bg-green px-5 py-4.5">
-                <span className={cx("size-10 shrink-0 rounded-full", o.dot)} />
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-cta">{o.title}</span>
-                  <span className="text-body-regular text-text-secondary">{o.text}</span>
+          <div className={grid("grid-cols-[repeat(auto-fit,minmax(270px,1fr))]")}>
+            <div data-reveal className={cx(card, "bg-mint text-dark-green")}>
+              <span className="text-body-2-medium text-green">01 · Certificate</span>
+              <div className="flex items-center gap-4 rounded-[14px] border border-paper-line bg-white p-4.5">
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="text-body-2-regular text-ink-muted">Certificate of completion</span>
+                  <span className="text-headline-medium">Build AI Agents</span>
+                  <span className="text-body-2-regular text-ink-muted">Ada · reviewed by a Juno mentor</span>
                 </div>
-              </li>
-            ))}
-          </ul>
+                <svg role="img" aria-label="QR code" width="64" height="64" viewBox="0 0 7 7" className="shrink-0">
+                  <path d="M0 0h3v3H0zM4 0h3v3H4zM0 4h3v3H0z" className="fill-dark-green" />
+                  <path d="M1 1h1v1H1zM5 1h1v1H5zM1 5h1v1H1z" className="fill-white" />
+                  <path d="M4 4h1v1H4zM6 4h1v1H6zM5 5h1v1H5zM4 6h1v1H4zM6 6h1v1H6z" className="fill-dark-green" />
+                </svg>
+              </div>
+              <span className="self-start rounded-full bg-purple px-3 py-1.5 text-body-2-medium">Verified on Stellar</span>
+              <p className="text-copy-sm">Anyone can scan the code and check it&apos;s real.</p>
+            </div>
+
+            <div data-reveal className={cx(card, "bg-green")}>
+              <span className="text-body-2-medium text-text-accent">02 · Resume</span>
+              <div className="flex flex-col gap-3 rounded-[14px] bg-dark-green p-4.5">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex size-9 items-center justify-center rounded-full bg-purple text-body-medium text-dark-green">A</span>
+                  <div className="flex flex-col">
+                    <span className="text-body-medium">Ada</span>
+                    <span className="text-body-2-regular text-text-tertiary">AI agent builder</span>
+                  </div>
+                </div>
+                <ul className="flex flex-wrap gap-1.5">
+                  {skills.map((skill) => (
+                    <li key={skill} className="rounded-full border border-radiant px-2.5 py-1 text-body-2-regular text-text-accent">{skill}</li>
+                  ))}
+                </ul>
+              </div>
+              <span className="self-start rounded-full bg-radiant px-3 py-1.5 text-body-2-medium text-dark-green">Filled in for her</span>
+              <p className="text-copy-sm text-text-secondary">Built from her skills and projects with Juno templates.</p>
+            </div>
+
+            <div data-reveal className={cx(card, "bg-purple text-dark-green")}>
+              <span className="text-body-2-medium">03 · Work</span>
+              <ul className="flex flex-col rounded-[14px] bg-mint px-4.5 py-2">
+                {jobs.map((job) => (
+                  <li key={job} className="flex min-h-12 items-center justify-between gap-3 border-paper-line not-last:border-b">
+                    <span className="text-copy-sm">{job}</span>
+                    <span className="text-body-2-regular text-ink-muted">USDC</span>
+                  </li>
+                ))}
+              </ul>
+              <a href="https://stallion.so" className="inline-flex min-h-12 items-center justify-center rounded-full bg-dark-green text-cta text-text-primary hover:text-text-accent">
+                Find work on Stallion
+              </a>
+              <p className="text-copy-sm">Matching bounties, paid straight to her Stellar wallet.</p>
+            </div>
+          </div>
         </section>
 
         <section className="border-y border-separator-border">
@@ -256,10 +315,35 @@ export default function Landing() {
         </section>
       </main>
 
-      <footer className="mx-auto flex max-w-312 flex-wrap justify-between gap-4 border-t border-separator-border px-6 pt-8 pb-12 text-body-regular text-text-tertiary">
-        <span className="text-wordmark-sm text-text-accent">juno</span>
-        <span>Learn. Prove. Rise. · Built with x402 on Stellar</span>
-        <a href="https://stallion.so" className="underline hover:text-text-primary">Find work on Stallion</a>
+      <footer className="border-t border-line bg-footer">
+        <div className="mx-auto flex max-w-312 flex-col gap-10 px-6 pt-14 pb-8">
+          <div className="flex flex-wrap gap-10">
+            <div className="flex min-w-0 grow-2 basis-70 flex-col gap-3.5">
+              <a href="#top" className="flex min-h-11 items-center gap-2 self-start rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
+                <CoinFan surface="stroke-footer" className="h-8 w-11.5" />
+                <span className="text-wordmark text-text-accent">juno</span>
+              </a>
+              <p className="max-w-80 text-copy text-text-secondary">Where women mint their skills.</p>
+              <span className="self-start rounded-full bg-purple px-3 py-1.5 text-body-2-medium text-dark-green">
+                Built with x402 on Stellar
+              </span>
+            </div>
+            {footerLinks.map((group) => (
+              <nav key={group.title} aria-label={group.title} className="flex min-w-0 grow basis-40 flex-col text-copy-sm">
+                <span className="mb-2 text-body-2-regular text-text-tertiary">{group.title}</span>
+                {group.links.map((link) => (
+                  <a key={link.href} href={link.href} className="flex min-h-11 items-center hover:text-text-accent">
+                    {link.label}
+                  </a>
+                ))}
+              </nav>
+            ))}
+          </div>
+          <div className="flex flex-wrap justify-between gap-3 border-t border-line pt-6 text-body-2-regular text-text-tertiary">
+            <span>© 2026 Juno</span>
+            <span>Made for EmpowerHer: Building the Agent Economy</span>
+          </div>
+        </div>
       </footer>
     </>
   );
