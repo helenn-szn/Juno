@@ -131,6 +131,9 @@ export function JunoChat() {
     setPhoto(undefined);
   }
 
+  // On a course's learn page her study agent is already beside the lesson, so Juno.ai steps aside.
+  if (/^\/app\/courses\/[^/]+\/learn\/?$/.test(pathname)) return null;
+
   return (
     <>
       <button
