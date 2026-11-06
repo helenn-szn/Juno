@@ -33,10 +33,16 @@ const TEXT_STYLE_SUFFIXES = TEXT_FAMILIES.flatMap((family) =>
   TEXT_WEIGHTS.map((weight) => `${family}-${weight}`),
 );
 
+// Juno's landing page styles, from styles/juno.css.
+const JUNO_TEXT_STYLES = [
+  "hero", "section", "closing", "stat", "figure", "wordmark", "wordmark-sm",
+  "role", "step", "lead", "lead-sm", "cta", "copy", "copy-sm",
+];
+
 const twMerge = extendTailwindMerge({
   extend: {
     classGroups: {
-      "font-size": [{ text: TEXT_STYLE_SUFFIXES }],
+      "font-size": [{ text: [...TEXT_STYLE_SUFFIXES, ...JUNO_TEXT_STYLES] }],
     },
   },
 });

@@ -10,7 +10,7 @@ npm run setup   # creates 4 testnet wallets and gives Ada 20 USDC
 npm run dev     # http://localhost:3000
 ```
 
-Press **Get a mentor review · 0.50 USDC**. Ada's balance drops by 0.50, the mentor's rises by 0.50, and the arrow opens the payment on the Stellar explorer.
+The landing page is at `/`. Press **Get started**, then **Get a mentor review · 0.50 USDC**. Ada's balance drops by 0.50, the mentor's rises by 0.50, and the arrow opens the payment on the Stellar explorer.
 
 ## Check it from the terminal
 
