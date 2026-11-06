@@ -8,7 +8,7 @@ import { currentUser } from "@/lib/session";
 
 async function Account() {
   const user = await currentUser();
-  return user ? <AccountMenu name={user.name} email={user.email} /> : null;
+  return user ? <AccountMenu name={user.name} email={user.email} avatar={user.avatar} /> : null;
 }
 
 /**

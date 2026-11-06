@@ -16,6 +16,7 @@
     "@remixicon/react": "^4.9.0",
     "@stellar/stellar-sdk": "^16.4.1",
     "@upstash/redis": "^1.41.0",
+    "@vercel/blob": "^2.8.2",
     "@x402/core": "^2.30.0",
     "@x402/fetch": "^2.30.0",
     "@x402/next": "^2.30.0",
