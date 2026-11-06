@@ -5,7 +5,7 @@ import Link from "next/link";
 import { RiArrowRightUpLine, RiCheckboxCircleFill } from "@remixicon/react";
 import { CoinFan } from "@/components/coin-fan";
 import { certificateDate } from "@/components/certificate-card";
-import { findCertificate } from "@/lib/certificates";
+import { certificateFacts, findCertificate } from "@/lib/certificates";
 import { explorer } from "@/lib/constants";
 
 export const metadata: Metadata = { title: "Check a certificate · juno", robots: { index: false } };
@@ -26,7 +26,7 @@ export default function Verify(props: PageProps<"/verify/[id]">) {
 
 async function Result({ params }: Pick<PageProps<"/verify/[id]">, "params">) {
   const id = (await params).id;
-  const certificate = /^[0-9a-f-]{36}$/.test(id) ? await findCertificate(id) : undefined;
+  const certificate = /^[\w-]{10,40}$/.test(id) ? await findCertificate(id) : undefined;
 
   if (!certificate) {
     return (
@@ -37,6 +37,7 @@ async function Result({ params }: Pick<PageProps<"/verify/[id]">, "params">) {
     );
   }
 
+  const facts = certificateFacts(certificate);
   return (
     <section className="on-dark flex w-full max-w-120 flex-col gap-5 rounded-[20px] bg-green p-7">
       <p className="flex items-center gap-2 text-title-3-medium text-neon">
@@ -46,12 +47,16 @@ async function Result({ params }: Pick<PageProps<"/verify/[id]">, "params">) {
         {[
           ["Learner", certificate.name],
           ["Skill", certificate.courseTitle],
-          ["Date", certificateDate(certificate.issuedAt)],
+          ["Level", facts.level],
+          ["Skill coins earned", String(facts.coins)],
+          ["Date issued", certificateDate(certificate.issuedAt)],
+          ["Reviewing mentor", facts.mentor],
           ["Issued by", "Juno"],
+          ["Certificate ID", certificate.id],
         ].map(([label, value]) => (
           <div key={label} className="flex flex-col gap-0.5 py-3">
             <dt className="text-body-2-regular text-text-tertiary">{label}</dt>
-            <dd className="text-copy">{value}</dd>
+            <dd className="text-copy break-all">{value}</dd>
           </div>
         ))}
       </dl>

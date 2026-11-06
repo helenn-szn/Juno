@@ -1,5 +1,5 @@
 // Wallets and balances on Stellar testnet. Used by the server and scripts.
-import { Asset, BASE_FEE, Horizon, Keypair, Networks, Operation, TransactionBuilder, xdr } from "@stellar/stellar-sdk";
+import { Asset, BASE_FEE, Horizon, Keypair, Memo, Networks, Operation, TransactionBuilder, xdr } from "@stellar/stellar-sdk";
 
 export const horizon = new Horizon.Server("https://horizon-testnet.stellar.org");
 
@@ -25,9 +25,13 @@ export async function usdcBalance(address: string): Promise<number> {
 }
 
 // Signs and sends a transaction from `source`. Returns the transaction hash.
-export async function submit(source: Keypair, ...ops: xdr.Operation[]) {
+export const submit = (source: Keypair, ...ops: xdr.Operation[]) => submitWithMemo(source, undefined, ...ops);
+
+// The same, with a short text note (a memo, at most 28 characters) stored with the transaction.
+export async function submitWithMemo(source: Keypair, memo: string | undefined, ...ops: xdr.Operation[]) {
   const account = await horizon.loadAccount(source.publicKey());
   const tx = new TransactionBuilder(account, { fee: BASE_FEE, networkPassphrase: Networks.TESTNET }).setTimeout(60);
+  if (memo) tx.addMemo(Memo.text(memo));
   ops.forEach((op) => tx.addOperation(op));
   const built = tx.build();
   built.sign(source);
