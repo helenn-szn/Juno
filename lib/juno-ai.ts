@@ -55,7 +55,7 @@ const tools = {
 
 // The screen shows "busy" as a friendly message; anything else as a general one.
 // Busy means Google is rate-limiting us, is overloaded (503), or took too long.
-const errorCode = (error: unknown) => {
+export const errorCode = (error: unknown) => {
   const { statusCode, name } = (error ?? {}) as { statusCode?: number; name?: string };
   return statusCode === 429 || statusCode === 503 || /timeout|abort/i.test(name ?? "") ? "busy" : "failed";
 };

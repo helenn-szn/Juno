@@ -38,16 +38,26 @@ export type Payment =
   | { ok: false; reason: "setup" | "low-balance" | "failed" };
 
 export async function payForMentorReview(url: string | URL): Promise<Payment> {
+  try {
+    return await pay(url);
+  } catch (error) {
+    // A network hiccup should read as a friendly "try again", never a server error.
+    console.error("Mentor review payment error:", error);
+    return { ok: false, reason: "failed" };
+  }
+}
+
+async function pay(url: string | URL): Promise<Payment> {
   const learner = wallet("learner");
   if (!learner) return { ok: false, reason: "setup" };
   if ((await usdcBalance(learner.publicKey())) < Number(MENTOR_REVIEW_PRICE)) {
     return { ok: false, reason: "low-balance" };
   }
 
-  const pay = wrapFetchWithPaymentFromConfig(fetch, {
+  const payingFetch = wrapFetchWithPaymentFromConfig(fetch, {
     schemes: [{ network: NETWORK, client: new ClientScheme(createEd25519Signer(learner.secret(), NETWORK)) }],
   });
-  const res = await pay(url);
+  const res = await payingFetch(url);
   const receipt = res.headers.get("PAYMENT-RESPONSE");
   if (!res.ok || !receipt) {
     console.error("Mentor review payment failed:", res.status, await res.text());
