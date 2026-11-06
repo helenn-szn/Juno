@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={cx("dark h-full antialiased", GeistSans.variable, GeistMono.variable)}>
+    <html lang="en" data-scroll-behavior="smooth" className={cx("dark h-full antialiased", GeistSans.variable, GeistMono.variable)}>
       <body className="min-h-full bg-background-full font-sans text-text-primary">{children}</body>
     </html>
   );

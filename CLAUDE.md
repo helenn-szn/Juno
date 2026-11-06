@@ -134,6 +134,10 @@ Landing page scroll animation, kept subtle:
 - Respect `prefers-reduced-motion`: show everything instantly
 - Content must be visible without JavaScript (animate from a class added by JS, never hide by default in CSS)
 
+- Nav links (header, mobile menu, footer) scroll smoothly to their section: `scroll-behavior: smooth` on `html`, plus `scroll-margin-top` on sections so headings aren't hidden. Off under `prefers-reduced-motion`
+
+Landing page header on phones (under 760px): the links collapse into a three-line menu button (44px+ tap target, `aria-expanded`, `aria-controls`). Tapping it opens a full-width menu under the header with the three links and a full-width "Get started" button; the icon turns into an X. Tapping a link scrolls to its section and closes the menu. Escape also closes it.
+
 ## Brand
 
 Name: **juno** (always lowercase in the wordmark). Tagline: "Where women mint their skills." Supporting line: "Learn. Prove. Rise."
@@ -169,15 +173,18 @@ Voice: the proud mentor. Warm, plain, celebrating.
 
 ## Code map
 
-- `app/page.tsx`: the landing page, built from `Landing.dc.html` (copy as written)
+- `app/page.tsx`: the landing page, built from `Landing.dc.html` (copy as written). `components/landing-header.tsx` is its header with the phone menu; `components/landing-motion.tsx` the scroll reveal
 - `app/signup`, `app/login`, `app/actions.ts`: Create account, Log in, Log out, Start course (server actions). Signing up opens her testnet wallet in the background (`setUpWallet`)
 - `app/app/layout.tsx`: the app frame (sidebar on desktop, tab bar on phones, Juno.ai in the corner). Screens: `page.tsx` Dashboard, `courses/` all courses with `?q=` search, `courses/[slug]` Course details, `courses/[slug]/learn` (where the study agent lands next), `learning/`, `certificates/`, `wallet/`, `settings/`
 - `components/`: `top-bar` (title, search, account menu), `app-nav` (sidebar + tab bar), `course-card`, `continue-card`, `lesson-list`, `module-list`, `progress` (bar and ring), `coin-fan` (the logo, and her coins), `juno-chat` (the floating Juno.ai). `components/base/` is BoardUI
-- `lib/courses.ts`: the six courses, typed (modules, lessons, progress helpers). `modulesDone` on a learner is how far she is; the learning flow will update it
+- `lib/courses.ts`: the six courses, typed (modules with an overview and free reading, lessons, progress helpers). `modulesDone` on a learner is how far she is; `lessonsDone` is the lessons ticked off in her current module. `completeLesson` (in `app/actions.ts`) updates both, and finishing the last module issues her certificate
+- `lib/certificates.ts` (+ `certificate-pdf`, `certificate-qr`): certificates in Redis or `data/certificates.json`, the PDF with its QR code, and the Stellar record the juno wallet writes. Pages: `app/app/certificates`, `app/verify/[id]` (public), `app/api/certificates/[id]/pdf`
+- `components/study-panel.tsx`: the study agent beside the lesson, foldable (a button on phones, a column on wide screens)
 - `proxy.ts`: signed out → /app goes to Log in; signed in → Log in/Create account go to /app
 - `lib/session.ts`: signed cookie. `lib/users.ts`: learners, in Redis when `UPSTASH_REDIS_REST_URL`/`KV_REST_API_URL` is set, else `data/users.json` (never committed)
 - `lib/ai.ts`: the AI provider (Gemini, one line to swap). `lib/juno-ai.ts` + `app/api/juno-ai`: Juno.ai (streams; tools `listCourses` and `getCourse`; marks a recommendation as `[course:slug]`). Needs `GOOGLE_GENERATIVE_AI_API_KEY`
-- `components/mentor-review.tsx`: step 1's pay button, unused for now; it returns inside the course flow
+- `lib/study-agent.ts` + `app/api/study-agent` + `components/study-agent.tsx`: the study agent on `courses/[slug]/learn` (streams; tools `suggestFreeResource`, `offerPaidHelp`, `checkBudget`). It never pays: the offer card's Book review button calls `app/api/pay`
+- `components/mentor-review.tsx`: step 1's pay button, unused now that the study agent has its own offer card
 - `lib/constants.ts`: network, price, explorer links (safe in the browser)
 - `lib/stellar.ts`: wallets and balances (server and scripts)
 - `lib/x402.ts`: x402 seller, in-app facilitator (juno wallet pays fees; the hosted one timed out and still charged), and the learner's payer (`payForMentorReview`, the future `payForService` tool)
