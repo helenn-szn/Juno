@@ -155,7 +155,7 @@ Voice: the proud mentor. Warm, plain, celebrating.
 - `proxy.ts`: signed out → /app goes to Log in; signed in → Log in/Create account go to /app
 - `lib/session.ts`: signed cookie. `lib/users.ts`: learners in `data/users.json` (local only, never committed)
 - `lib/courses.ts`: the course list (typed). Juno.ai is seeded with it
-- `lib/juno-ai.ts`, `app/api/juno-ai`, `components/juno-ai.tsx`: Juno.ai (Claude call, answers + course slugs). Needs `ANTHROPIC_API_KEY`
+- `lib/juno-ai.ts`, `app/api/juno-ai`, `components/juno-ai.tsx`: Juno.ai (one Gemini call, answers + course slugs). Needs `GOOGLE_GENERATIVE_AI_API_KEY`
 - `components/mentor-review.tsx`: step 1's pay button, unused for now; it returns inside the course flow
 - `components/coin-fan.tsx`: the logo
 - `lib/constants.ts`: network, price, explorer links (safe in the browser)

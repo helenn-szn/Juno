@@ -25,7 +25,7 @@ async function main() {
     const secret = process.env[`${role.toUpperCase()}_SECRET`];
     wallets[role] = secret ? Keypair.fromSecret(secret) : Keypair.random();
   }
-  // Keep anything else already in .env.local (e.g. ANTHROPIC_API_KEY).
+  // Keep anything else already in .env.local (e.g. GOOGLE_GENERATIVE_AI_API_KEY).
   const env = new Map(
     (fs.existsSync(ENV_FILE) ? fs.readFileSync(ENV_FILE, "utf8") : "")
       .split("\n").filter((line) => line.includes("=")).map((line) => [line.slice(0, line.indexOf("=")), line.slice(line.indexOf("=") + 1)]),
