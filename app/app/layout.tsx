@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { SidebarLinks, TabBar } from "@/components/app-nav";
 import { CoinFan } from "@/components/coin-fan";
 import { JunoChat } from "@/components/juno-chat";
+import { currentUser } from "@/lib/session";
 import { StallionCard } from "@/components/stallion-card";
 import Link from "next/link";
 
@@ -28,8 +29,14 @@ export default function AppLayout({ children }: LayoutProps<"/app">) {
 
       <Suspense>
         <TabBar />
-        <JunoChat />
+        <Chat />
       </Suspense>
     </div>
   );
+}
+
+// Juno.ai knows whether she has set up her plan yet; it asks the questions if she hasn't.
+async function Chat() {
+  const user = await currentUser();
+  return <JunoChat hasProfile={Boolean(user?.profile)} />;
 }

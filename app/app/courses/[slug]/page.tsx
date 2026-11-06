@@ -2,6 +2,7 @@
 // lessons, and on the right her progress, every module, and what she earns.
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { notFound, redirect } from "next/navigation";
 import { RiPlayFill } from "@remixicon/react";
 import { startCourse } from "@/app/actions";
@@ -11,9 +12,11 @@ import { LessonList } from "@/components/lesson-list";
 import { ModuleList } from "@/components/module-list";
 import { PageGrid, Section } from "@/components/page-grid";
 import { PageSpinner } from "@/components/page-spinner";
+import { PlanCard } from "@/components/plan-card";
 import { ProgressLine, ProgressRing } from "@/components/progress";
 import { TopBar } from "@/components/top-bar";
 import { courses, findCourse, progressFor, type Course } from "@/lib/courses";
+import { buildPlan } from "@/lib/plan";
 import { currentUser } from "@/lib/session";
 
 export function generateStaticParams() {
@@ -49,6 +52,7 @@ async function Details({ params }: Pick<PageProps<"/app/courses/[slug]">, "param
 const mmss = (minutes = 0) => `${String(minutes).padStart(2, "0")}:00`;
 
 async function Body({ course }: { course: Course }) {
+  await connection(); // the plan depends on today's date
   const user = await currentUser();
   if (!user) redirect("/login");
 
@@ -107,6 +111,8 @@ async function Body({ course }: { course: Course }) {
               </Button>
             </form>
           </div>
+
+          {user.profile && <PlanCard plan={buildPlan(course, user.profile, progress.done)} profile={user.profile} />}
 
           <div className="flex flex-col gap-1 rounded-2xl border border-line p-5">
             <h2 className="mb-2 text-title-3-medium">Modules</h2>

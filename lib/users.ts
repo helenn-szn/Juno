@@ -9,6 +9,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Keypair } from "@stellar/stellar-sdk";
 import { Redis } from "@upstash/redis";
+import type { Profile } from "./profile";
 import { openWallet } from "./stellar";
 
 export type User = {
@@ -18,6 +19,7 @@ export type User = {
   passwordHash: string;
   createdAt: string;
   startedCourses: string[];
+  profile?: Profile; // her answers before the first course: experience, goal and schedule
   avatar?: string; // link to her profile picture
   modulesDone?: Record<string, number>; // finished modules per course slug
   lessonsDone?: Record<string, number[]>; // finished lessons of her current module, per course slug

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { RiArrowUpLine, RiCloseLine, RiImageAddLine } from "@remixicon/react";
@@ -16,9 +17,11 @@ import { cx } from "@/utils/cx";
 
 const transport = new DefaultChatTransport({ api: "/api/juno-ai" });
 const GREETING = "Hello there, what can I help you with?";
+const ONBOARDING_GREETING = "Hi! Before your first course, let's make it fit your life. I'll ask a few quick questions about what you know and when you can study.";
 const MARKER = /\[course:([a-z0-9-]+)\]/g;
 
-function suggestions(pathname: string) {
+function suggestions(pathname: string, hasProfile: boolean) {
+  if (!hasProfile) return ["Set up my learning plan", "Recommend a course"];
   if (pathname.startsWith("/app/courses/build-ai-agents")) return ["Explain x402 simply", "What should I take next?"];
   if (pathname.startsWith("/app/courses/")) return ["What will I learn here?", "What should I take next?"];
   return ["Recommend a course", "How do mentor reviews work?"];
@@ -55,8 +58,9 @@ function Reply({ text, onOpenCourse }: { text: string; onOpenCourse: () => void 
   );
 }
 
-export function JunoChat() {
+export function JunoChat({ hasProfile }: { hasProfile: boolean }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [photo, setPhoto] = useState<{ url: string; type: "uploading" | "ready" | "error" }>();
@@ -80,6 +84,20 @@ export function JunoChat() {
       launcher.current?.focus();
     }
   }, [open]);
+
+  // Other parts of the app (the dashboard's "Chat with Juno.ai") can ask it to open.
+  useEffect(() => {
+    const show = () => setOpen(true);
+    window.addEventListener("juno-open", show);
+    return () => window.removeEventListener("juno-open", show);
+  }, []);
+
+  // When Juno.ai saves her plan from the chat, the rest of the app learns of it.
+  const saved = messages.some((message) => message.parts.some((part) => part.type === "tool-saveProfile" && part.state === "output-available"));
+  useEffect(() => {
+    if (!saved) return;
+    router.refresh();
+  }, [saved, router]);
 
   // Escape closes the chat from anywhere.
   useEffect(() => {
@@ -171,7 +189,7 @@ export function JunoChat() {
         </div>
 
         <div role="log" aria-live="polite" className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain">
-          <p className="max-w-[90%] rounded-[16px_16px_16px_4px] bg-dark-green px-3.5 py-3 text-copy-sm">{GREETING}</p>
+          <p className="max-w-[90%] rounded-[16px_16px_16px_4px] bg-dark-green px-3.5 py-3 text-copy-sm">{hasProfile || saved ? GREETING : ONBOARDING_GREETING}</p>
           {messages.map((message) =>
             message.role === "user" ? (
               <div key={message.id} className="flex max-w-[85%] flex-col items-end gap-1.5 self-end">
@@ -186,11 +204,19 @@ export function JunoChat() {
                 </p>
               </div>
             ) : (
-              <Reply
-                key={message.id}
-                text={message.parts.map((part) => (part.type === "text" ? part.text : "")).join("")}
-                onOpenCourse={closeOnPhone}
-              />
+              <div key={message.id} className="flex flex-col gap-2">
+                <Reply text={message.parts.map((part) => (part.type === "text" ? part.text : "")).join("")} onOpenCourse={closeOnPhone} />
+                {message.parts.some((part) => part.type === "tool-saveProfile" && part.state === "output-available") && (
+                  <Link
+                    href="/app/onboarding"
+                    onClick={closeOnPhone}
+                    className="flex min-h-11 items-center justify-between gap-3 rounded-2xl bg-dark-green px-3.5 py-2.5 text-body-medium outline-none hover:bg-dark-green/70 focus-visible:ring-2 focus-visible:ring-border-focus-ring"
+                  >
+                    Your plan is saved. See or change it
+                    <span aria-hidden className="text-radiant">→</span>
+                  </Link>
+                )}
+              </div>
             ),
           )}
           {thinking && (
@@ -209,7 +235,7 @@ export function JunoChat() {
 
         {messages.length === 0 && (
           <div className="flex flex-wrap gap-2">
-            {suggestions(pathname).map((text) => (
+            {suggestions(pathname, hasProfile || saved).map((text) => (
               <button
                 key={text}
                 type="button"

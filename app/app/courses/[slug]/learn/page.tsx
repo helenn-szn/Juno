@@ -3,11 +3,13 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { notFound, redirect } from "next/navigation";
 import { RiArrowRightUpLine } from "@remixicon/react";
 import { ButtonLink } from "@/components/base/buttons/button";
 import { LessonChecklist } from "@/components/lesson-checklist";
 import { ModuleList } from "@/components/module-list";
+import { PlanCard } from "@/components/plan-card";
 import { PageSpinner } from "@/components/page-spinner";
 import { Section } from "@/components/page-grid";
 import { ProgressLine } from "@/components/progress";
@@ -15,6 +17,7 @@ import { StudyPanel } from "@/components/study-panel";
 import { TopBar } from "@/components/top-bar";
 import { certificatesFor } from "@/lib/certificates";
 import { courses, findCourse, progressFor } from "@/lib/courses";
+import { buildPlan, shortDate } from "@/lib/plan";
 import { currentUser } from "@/lib/session";
 
 export function generateStaticParams() {
@@ -51,8 +54,10 @@ async function Lessons({ params }: Pick<PageProps<"/app/courses/[slug]/learn">, 
 
 async function Current({ slug }: { slug: string }) {
   const course = findCourse(slug)!;
+  await connection(); // the plan depends on today's date
   const user = await currentUser();
   if (!user) redirect("/login");
+  if (!user.profile) redirect(`/app/onboarding?next=${slug}`);
 
   const done = user.modulesDone?.[slug] ?? 0;
   const progress = progressFor(course, done);
@@ -72,6 +77,7 @@ async function Current({ slug }: { slug: string }) {
   }
 
   const moduleNumber = done + 1;
+  const plan = buildPlan(course, user.profile, done);
   return (
     <div className="grid items-start gap-7 p-6 lg:p-7 min-[1100px]:grid-cols-[minmax(0,1fr)_auto]">
       <div className="flex min-w-0 max-w-170 flex-col gap-9">
@@ -83,8 +89,11 @@ async function Current({ slug }: { slug: string }) {
             {unit.title}
           </h2>
           <p className="text-copy text-text-secondary">{unit.overview}</p>
+          <p className="text-body-medium text-green">Aim to finish this module by {shortDate(plan.due[0])}.</p>
           <ProgressLine percent={progress.percent} size="sm" label="Course progress" />
         </section>
+
+        <PlanCard plan={plan} profile={user.profile} />
 
         <Section title="Lessons" id="lessons">
           <LessonChecklist course={course} unit={unit} done={user.lessonsDone?.[slug] ?? []} />

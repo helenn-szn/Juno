@@ -7,10 +7,12 @@ import { ContinueCard } from "@/components/continue-card";
 import { CoinFan } from "@/components/coin-fan";
 import { CourseCard } from "@/components/course-card";
 import { Empty, PageGrid, Section } from "@/components/page-grid";
+import { PlanPrompt } from "@/components/plan-prompt";
 import { PageSpinner } from "@/components/page-spinner";
 import { TopBar } from "@/components/top-bar";
 import { WalletBalance } from "@/components/wallet-balance";
 import { courses } from "@/lib/courses";
+import { fitScore } from "@/lib/profile";
 import { currentUser } from "@/lib/session";
 
 export default function Dashboard() {
@@ -33,12 +35,17 @@ async function Content() {
   const inProgress = started.filter((course) => doneOf(course.slug) < course.modules.length);
   const finished = started.length - inProgress.length;
   const coins = started.reduce((total, course) => total + doneOf(course.slug), 0);
-  const next = courses.filter((course) => !user.startedCourses.includes(course.slug));
+  const profile = user.profile;
+  // What she hasn't started, best fit first once we know about her.
+  const next = courses
+    .filter((course) => !user.startedCourses.includes(course.slug))
+    .sort((a, b) => (profile ? fitScore(b, profile) - fitScore(a, profile) : 0));
 
   return (
     <PageGrid
       main={
         <>
+          {!profile && <PlanPrompt />}
           <Section title="Continue learning" id="continue">
             {inProgress.length ? (
               <div className="grid gap-3.5 sm:grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]">
