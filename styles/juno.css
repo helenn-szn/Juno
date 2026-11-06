@@ -16,11 +16,13 @@
   --color-purple: #8f93ff;     /* only means "new skill / proof" */
   --color-mint: #ebfff5;       /* text on dark, light backgrounds */
   --color-line: #2c4a48;       /* dividers and quiet surfaces on dark-green */
+  --color-forest: #2c4a48;     /* a fixed mid-green, for the Blockchain cover */
 
   /* Coin shading for the logo */
   --color-coin-side: #9bc748;
   --color-coin-newest-side: #6266d4;
   --color-coin-off-side: #1e3a3b;
+  --color-coin-light-off-side: #e3ede8; /* unearned coins on white */
 
   /* Brand meanings, as text colours */
   --color-text-accent: var(--color-radiant);
@@ -77,7 +79,12 @@
   --text-copy-sm--line-height: 1.55;
 }
 
-.dark {
+/* Dark surfaces: the landing page, and the dark-green cards inside the light app. */
+.dark,
+.on-dark {
+  color-scheme: dark;
+  --color-text-accent: var(--color-radiant);
+  --color-line: #2c4a48;
   --color-background-full: var(--color-dark-green);
   --color-background-primary-default: var(--color-green);
   --color-background-primary-hover: color-mix(in srgb, var(--color-green) 85%, var(--color-mint));
@@ -105,6 +112,28 @@
     color-mix(in srgb, var(--color-radiant) 24%, var(--color-dark-green))
   );
   --color-button-primary-disabled-foreground: #cfe3dd;
+}
+
+.on-dark {
+  color: var(--color-text-primary);
+}
+
+/* The app screens: white page, dark ink, dark-green cards (mark those .on-dark). */
+.app-light {
+  color-scheme: light;
+  --color-background-full: #fff;
+  --color-background-primary-default: #fff;
+  --color-background-primary-hover: var(--color-mint);
+  --color-text-primary: var(--color-dark-green);
+  --color-text-secondary: #4a615e;
+  --color-text-tertiary: #4a615e;
+  --color-text-accent: var(--color-green);
+  --color-line: #e3ede8;
+  --color-separator-border: #cfddd7;
+  --color-border-button-default: #e3ede8;
+  --color-border-button-hover: #cfddd7;
+  --color-border-button-active: #cfddd7;
+  --color-border-focus-ring: var(--color-green);
 }
 
 .dark .bg-button-primary {

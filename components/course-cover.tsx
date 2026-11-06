@@ -25,7 +25,7 @@ const covers: Record<CourseCover, string> = {
   neon: "bg-neon text-dark-green",
   green: "bg-green text-radiant",
   mint: "bg-mint text-green",
-  line: "bg-line text-purple",
+  forest: "bg-forest text-purple",
 };
 
 /** The big coloured cover on a course card. */

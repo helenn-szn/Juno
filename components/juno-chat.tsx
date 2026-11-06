@@ -130,7 +130,7 @@ export function JunoChat() {
         aria-label="Juno.ai"
         hidden={!open}
         className={cx(
-          "fixed z-50 flex flex-col gap-3.5 bg-green p-4.5",
+          "on-dark fixed z-50 flex flex-col gap-3.5 bg-green p-4.5",
           "max-lg:inset-0 max-lg:pt-[max(1.125rem,env(safe-area-inset-top))]",
           "lg:right-6 lg:bottom-6 lg:max-h-[min(40rem,calc(100dvh-3rem))] lg:w-85 lg:rounded-[20px] lg:border lg:border-separator-border lg:shadow-xl",
         )}

@@ -65,7 +65,7 @@ async function Content() {
       }
       side={
         <>
-          <div className="flex flex-col gap-4 rounded-2xl bg-green p-5">
+          <div className="on-dark flex flex-col gap-4 rounded-2xl bg-green p-5">
             <div className="flex items-center gap-3">
               <span className="flex size-13 items-center justify-center rounded-full bg-purple text-title-3-medium text-dark-green" aria-hidden>
                 {user.name.charAt(0).toUpperCase()}
@@ -81,17 +81,17 @@ async function Content() {
           </div>
 
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-line p-5">
-            <CoinFan earned={Math.min(coins, 5)} label={`${Math.min(coins, 5)} of 5 skill coins earned`} className="w-50" />
+            <CoinFan theme="light" earned={Math.min(coins, 5)} label={`${Math.min(coins, 5)} of 5 skill coins earned`} className="w-50" />
             <p className="text-body-medium">{coins ? `${coins} ${coins === 1 ? "skill" : "skills"} minted` : "No skills minted yet"}</p>
           </div>
 
           <dl className="grid grid-cols-2 gap-3.5">
             <div className="flex flex-col gap-1 rounded-2xl border border-line p-4.5">
-              <dd className="text-display-4-medium text-radiant">{inProgress.length}</dd>
+              <dd className="text-display-4-medium text-green">{inProgress.length}</dd>
               <dt className="text-body-2-regular text-text-secondary">In progress</dt>
             </div>
             <div className="flex flex-col gap-1 rounded-2xl border border-line p-4.5">
-              <dd className="text-display-4-medium text-purple">{finished}</dd>
+              <dd className="text-display-4-medium text-coin-newest-side">{finished}</dd>
               <dt className="text-body-2-regular text-text-secondary">{finished === 1 ? "Certificate" : "Certificates"}</dt>
             </div>
           </dl>

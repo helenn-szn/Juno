@@ -12,7 +12,7 @@ function StateIcon({ state }: { state: ModuleState }) {
       </span>
     );
   if (state === "locked") return <RiLockLine className="size-5 text-text-tertiary" aria-hidden />;
-  return <span className={cx("size-5 rounded-full border-2", state === "current" ? "border-[3px] border-radiant" : "border-separator-border")} />;
+  return <span className={cx("size-5 rounded-full border-2", state === "current" ? "border-[3px] border-green" : "border-separator-border")} />;
 }
 
 /** Every module of a course with where she is: done, current, not started or locked. */
@@ -27,7 +27,7 @@ export function ModuleList({ course, done }: { course: Course; done: number }) {
             aria-current={state === "current" ? "step" : undefined}
             className={cx(
               "flex min-h-10 items-center gap-3 text-body-regular",
-              state === "current" && "text-body-medium text-radiant",
+              state === "current" && "text-body-medium text-green",
               state === "locked" && "text-text-tertiary",
             )}
           >

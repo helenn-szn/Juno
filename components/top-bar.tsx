@@ -28,7 +28,7 @@ export function TopBar({ title, back, search = false }: { title: string; back?: 
         </Link>
       ) : (
         <Link href="/app" aria-label="juno home" className="flex min-h-11 items-center lg:hidden">
-          <CoinFan className="h-7 w-10" />
+          <CoinFan theme="light" className="h-7 w-10" />
         </Link>
       )}
       <h1 className="me-auto min-w-0 truncate text-title-1-medium tracking-[-0.03em]">{title}</h1>

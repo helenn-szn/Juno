@@ -39,9 +39,9 @@ export function SidebarLinks() {
           href={item.href}
           aria-current={active(item) ? "page" : undefined}
           className={cx(
-            "flex min-h-11 items-center gap-3 rounded-[10px] px-3 text-body-medium hover:bg-green/60",
+            "flex min-h-11 items-center gap-3 rounded-[10px] px-3 text-body-medium",
             ring,
-            active(item) ? "bg-green text-radiant" : "text-mint",
+            active(item) ? "bg-green text-radiant" : "text-text-primary hover:bg-mint",
           )}
         >
           <item.icon className="size-[18px]" aria-hidden />
@@ -58,7 +58,7 @@ export function TabBar() {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-dark-green pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-background-full pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       {items.map((item) => (
         <Link
@@ -68,7 +68,7 @@ export function TabBar() {
           className={cx(
             "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 text-[10px] leading-3",
             ring,
-            active(item) ? "text-radiant" : "text-text-secondary",
+            active(item) ? "text-green" : "text-text-secondary",
           )}
         >
           <item.icon className="size-5" aria-hidden />

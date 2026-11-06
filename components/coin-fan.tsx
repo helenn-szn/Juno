@@ -1,11 +1,37 @@
 // The juno logo: five coins fanned on stems from one base coin.
 // The centre coin is the newest one, so it's purple.
 // `earned` (0 to 5) turns it into a progress fan: coins she hasn't earned yet
-// are dark, with dashed stems. Without it, all five are lit.
+// are blank, with dashed stems. Without it, all five are lit.
+// `theme` is the surface it sits on: "dark" (radiant coins) or "light" (green coins).
 import { cx } from "@/utils/cx";
 
 const outline = { strokeWidth: 2, strokeLinejoin: "round" } as const;
 const ANGLES = [-60, -30, 30, 60] as const;
+
+const palettes = {
+  dark: {
+    stem: "stroke-radiant",
+    stemOff: "stroke-line",
+    surface: "stroke-dark-green",
+    lit: { face: "fill-radiant", side: "fill-coin-side", line: "" },
+    off: { face: "fill-dark-green", side: "fill-coin-off-side", line: "stroke-line" },
+    baseFace: "fill-radiant",
+    baseSide: "fill-coin-side",
+  },
+  light: {
+    stem: "stroke-green",
+    stemOff: "stroke-separator-border",
+    surface: "stroke-white",
+    lit: { face: "fill-green", side: "fill-dark-green", line: "" },
+    off: { face: "fill-white", side: "fill-coin-light-off-side", line: "stroke-separator-border" },
+    baseFace: "fill-green",
+    baseSide: "fill-dark-green",
+  },
+};
+
+const purple = { face: "fill-purple", side: "fill-coin-newest-side", line: "" };
+
+type Palette = (typeof palettes)["dark"];
 
 type CoinFanProps = React.ComponentProps<"svg"> & {
   label?: string;
@@ -13,11 +39,14 @@ type CoinFanProps = React.ComponentProps<"svg"> & {
   animate?: boolean;
   /** Coins earned, 0 to 5. */
   earned?: number;
-  /** Colour of the coin outlines. Use the surface the logo sits on. */
-  surface?: "stroke-dark-green" | "stroke-green";
+  theme?: "dark" | "light";
+  /** Colour of the coin outlines. Defaults to the surface the logo sits on. */
+  surface?: "stroke-dark-green" | "stroke-green" | "stroke-white";
 };
 
-export function CoinFan({ label, animate = false, earned = 5, surface = "stroke-dark-green", ...svg }: CoinFanProps) {
+export function CoinFan({ label, animate = false, earned = 5, theme = "dark", surface, ...svg }: CoinFanProps) {
+  const palette = palettes[theme];
+  const outlineClass = surface ?? palette.surface;
   // The newest (centre) coin lights first, then the rest from the left.
   const lit = (angle: number) => ANGLES.indexOf(angle as (typeof ANGLES)[number]) < earned - 1;
   return (
@@ -40,7 +69,7 @@ export function CoinFan({ label, animate = false, earned = 5, surface = "stroke-
             transform={`rotate(${angle} 70 124)`}
             strokeWidth={5}
             strokeDasharray={on ? undefined : "4 4"}
-            className={on ? "stroke-radiant" : "stroke-line"}
+            className={on ? palette.stem : palette.stemOff}
           />
         );
       })}
@@ -48,35 +77,28 @@ export function CoinFan({ label, animate = false, earned = 5, surface = "stroke-
         <Coin
           key={angle}
           angle={angle}
-          tone={lit(angle) ? "radiant" : "off"}
-          surface={surface}
+          tone={lit(angle) ? palette.lit : palette.off}
+          surface={outlineClass}
           delay={animate ? index * 120 : undefined}
         />
       ))}
-      <Coin angle={0} tone={earned >= 1 ? "purple" : "off"} surface={surface} delay={animate ? 4 * 120 : undefined} />
-      <g className={surface} {...outline}>
-        <path d="M54,124 A16,5 0 0,0 86,124 L86,129 A16,5 0 0,1 54,129 Z" className="fill-coin-side" />
-        <ellipse cx="70" cy="124" rx="16" ry="5" className="fill-radiant" />
+      <Coin angle={0} tone={earned >= 1 ? purple : palette.off} surface={outlineClass} delay={animate ? 4 * 120 : undefined} />
+      <g className={outlineClass} {...outline}>
+        <path d="M54,124 A16,5 0 0,0 86,124 L86,129 A16,5 0 0,1 54,129 Z" className={palette.baseSide} />
+        <ellipse cx="70" cy="124" rx="16" ry="5" className={palette.baseFace} />
       </g>
     </svg>
   );
 }
 
-const tones = {
-  radiant: { face: "fill-radiant", side: "fill-coin-side", line: "" },
-  purple: { face: "fill-purple", side: "fill-coin-newest-side", line: "" },
-  off: { face: "fill-dark-green", side: "fill-coin-off-side", line: "stroke-line" },
-};
-
-type Tone = keyof typeof tones;
+type Tone = Palette["lit"];
 
 function CoinShape({ tone, surface }: { tone: Tone; surface: string }) {
-  const { face, side, line } = tones[tone];
   return (
-    <g className={cx(surface, line)} {...outline}>
-      <ellipse cx="74.5" cy="54" rx="13" ry="15" className={side} />
-      <rect x="70" y="39" width="4.5" height="30" className={cx(side, "stroke-none")} />
-      <ellipse cx="70" cy="54" rx="13" ry="15" className={face} />
+    <g className={cx(surface, tone.line)} {...outline}>
+      <ellipse cx="74.5" cy="54" rx="13" ry="15" className={tone.side} />
+      <rect x="70" y="39" width="4.5" height="30" className={cx(tone.side, "stroke-none")} />
+      <ellipse cx="70" cy="54" rx="13" ry="15" className={tone.face} />
       <ellipse cx="70" cy="54" rx="8" ry="9.5" fill="none" />
     </g>
   );
@@ -93,10 +115,11 @@ function Coin({ angle, tone, surface, delay }: { angle: number; tone: Tone; surf
 }
 
 /** One coin on its own, for "You earn" rows. */
-export function CoinIcon({ tone = "radiant", className }: { tone?: "radiant" | "purple"; className?: string }) {
+export function CoinIcon({ tone = "skill", theme = "light", className }: { tone?: "skill" | "newest"; theme?: "dark" | "light"; className?: string }) {
+  const palette = palettes[theme];
   return (
     <svg viewBox="55 37 35 34" aria-hidden className={className}>
-      <CoinShape tone={tone} surface="stroke-dark-green" />
+      <CoinShape tone={tone === "newest" ? purple : palette.lit} surface={palette.surface} />
     </svg>
   );
 }

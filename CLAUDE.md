@@ -150,7 +150,7 @@ Colours:
 | purple | #8F93FF | Newest coin, new skill, proof/explorer |
 | mint | #EBFFF5 | Text on dark, light backgrounds |
 
-Rules: no gradients. Dark mode by default. Radiant buttons with dark-green text. Neon only means "paid". Purple only means "new skill / proof".
+Rules: no gradients. App screens use a white background with dark green (#004D43) cards as accents; text #183132, borders #E3EDE8, muted text #4A615E. The landing page stays dark. Radiant buttons with dark-green text. Neon only means "paid". Purple only means "new skill / proof".
 
 Font: Geist (Google Fonts) — Medium for headings and wordmark, Regular for body. (Aeonik is the intended final font if licensed.)
 
@@ -184,6 +184,6 @@ Voice: the proud mentor. Warm, plain, celebrating.
 - `app/api/mentor-review`: the paid route (402 until paid)
 - `app/api/pay`: the learner's agent pays for a review
 - `scripts/setup.ts`, `scripts/pay.ts`: `npm run setup`, `npm run pay`
-- `styles/juno.css`: the brand, applied as BoardUI tokens, plus the landing type styles (mirror new ones in `utils/cx.ts`). The only file with hex colours
+- `styles/juno.css`: the brand, applied as BoardUI tokens, plus the landing type styles (mirror new ones in `utils/cx.ts`). The only file with hex colours. App screens sit in `.app-light` (white page); the dark-green cards and the Juno.ai panel inside them carry `.on-dark` to get light text back. The landing page and the sign-up/log-in pages stay dark
 
 UI rules for BoardUI: @AGENTS.md
