@@ -19,7 +19,7 @@ The bar is Linear's website and Apple Notes: simple purpose, simple architecture
 ## The demo story (build toward this)
 
 1. A sponsor funds Ada's learning wallet with 20 testnet USDC.
-2. Ada tells her study agent: "I'm stuck on my logo design."
+2. Ada tells her study agent: "I'm stuck on my agent's first tool."
 3. The agent suggests a free resource first (a video link).
 4. Ada is still stuck. The agent offers a mentor review for 0.50 USDC and asks before paying.
 5. Ada agrees. The agent pays via x402. The mentor is paid in seconds.

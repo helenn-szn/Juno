@@ -54,8 +54,11 @@ const tools = {
 };
 
 // The screen shows "busy" as a friendly message; anything else as a general one.
-const errorCode = (error: unknown) =>
-  (error as { statusCode?: number } | null)?.statusCode === 429 ? "busy" : "failed";
+// Busy means Google is rate-limiting us, is overloaded (503), or took too long.
+const errorCode = (error: unknown) => {
+  const { statusCode, name } = (error ?? {}) as { statusCode?: number; name?: string };
+  return statusCode === 429 || statusCode === 503 || /timeout|abort/i.test(name ?? "") ? "busy" : "failed";
+};
 
 export async function junoAi(messages: UIMessage[], page?: string, model: LanguageModel = defaultModel) {
   const course = page?.startsWith("/app/courses/") ? findCourse(page.split("/")[3] ?? "") : undefined;
@@ -66,6 +69,8 @@ export async function junoAi(messages: UIMessage[], page?: string, model: Langua
     tools,
     stopWhen: isStepCount(4),
     maxOutputTokens: 700,
+    maxRetries: 1,
+    timeout: { firstChunkMs: 20_000, totalMs: 45_000 },
   });
   return createUIMessageStreamResponse({ stream: toUIMessageStream({ stream: result.stream, onError: errorCode }) });
 }
