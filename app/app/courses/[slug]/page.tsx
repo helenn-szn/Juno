@@ -13,7 +13,7 @@ import { PageGrid, Section } from "@/components/page-grid";
 import { PageSpinner } from "@/components/page-spinner";
 import { ProgressLine, ProgressRing } from "@/components/progress";
 import { TopBar } from "@/components/top-bar";
-import { courses, findCourse, progressFor, type Course } from "@/lib/courses";
+import { courses, findCourse, progressFor, youtubeThumbnail, type Course } from "@/lib/courses";
 import { currentUser } from "@/lib/session";
 
 export function generateStaticParams() {
@@ -64,7 +64,15 @@ async function Body({ course }: { course: Course }) {
       main={
         <>
           <div className="on-dark relative flex min-h-60 flex-col justify-between gap-6 overflow-hidden rounded-[20px] bg-green p-6 sm:aspect-video sm:p-7">
-            <CoinFan surface="stroke-green" className="absolute -right-1 top-5 w-[40%] max-w-105 sm:top-auto sm:-right-[2%] sm:bottom-[14%] sm:w-[46%]" />
+            {lesson.youtube ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element -- YouTube's own thumbnail */}
+                <img src={youtubeThumbnail(lesson.youtube)} alt="" className="absolute inset-0 size-full object-cover" />
+                <div aria-hidden className="absolute inset-0 bg-footer/60" />
+              </>
+            ) : (
+              <CoinFan surface="stroke-green" className="absolute -right-1 top-5 w-[40%] max-w-105 sm:top-auto sm:-right-[2%] sm:bottom-[14%] sm:w-[46%]" />
+            )}
             <div className="relative flex max-w-[60%] flex-col gap-2.5">
               <span className="text-section leading-[1.05]">{lesson.title}</span>
               <span className="text-lead-sm font-medium text-radiant">

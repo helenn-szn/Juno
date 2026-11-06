@@ -6,7 +6,11 @@ export type Lesson = {
   title: string;
   minutes?: number; // reviews have no video, so no length
   kind: "video" | "hands-on" | "review";
+  youtube?: string; // the YouTube video id (the part after v=), for the player's thumbnail
 };
+
+/** The picture YouTube keeps for a video. */
+export const youtubeThumbnail = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
 export type Resource = { title: string; url: string; kind: "Docs" | "Article" | "Course" };
 
