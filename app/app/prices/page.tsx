@@ -23,6 +23,6 @@ export default function Prices() {
 async function Content() {
   const user = await currentUser();
   if (!user) redirect("/login");
-  if (user.role !== "mentor" || user.mentor?.status !== "approved") redirect("/app");
+  if (user.role !== "mentor" || !user.mentor || user.mentor.status === "changes") redirect("/app");
   return <MentorPricesForm mentor={user.mentor} />;
 }

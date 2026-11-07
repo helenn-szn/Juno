@@ -11,6 +11,7 @@ import { findCourse, courses } from "@/lib/courses";
 import { changeRequest, findRequest, mintSkillCoin } from "@/lib/mentors";
 import { FORMAT_KEYS, FORMATS, HOURS, priceProblem, type Format, type MentorProfile } from "@/lib/mentors-shared";
 import { notify, usdc } from "@/lib/notifications";
+import { MAX_RESUME_BYTES, RESUME_TYPES, saveResume } from "@/lib/uploads";
 import { currentUser, startSession } from "@/lib/session";
 import { recordReview, sponsorsOf } from "@/lib/sponsoring";
 import { sendUsdc, usdcBalance, usdcBalanceOrZero } from "@/lib/stellar";
@@ -46,6 +47,9 @@ export async function applyAsMentor(_: FormState, form: FormData): Promise<FormS
   const country = text(form, "country");
   const bio = text(form, "bio");
   const link = text(form, "link");
+  const about = text(form, "about").slice(0, 1500);
+  const upload = form.get("resume");
+  const file = upload instanceof File && upload.size > 0 ? upload : undefined;
   const picked = form.getAll("courses").map(String).filter((slug) => findCourse(slug));
   const { prices, errors } = readPrices(form);
 
@@ -59,16 +63,26 @@ export async function applyAsMentor(_: FormState, form: FormData): Promise<FormS
   if (!picked.length) errors.courses = "Pick at least one course you can review.";
   if (bio.length < 20) errors.bio = "Tell learners a little about you (20 characters or more).";
   if (!/^https?:\/\/\S+\.\S+/.test(link)) errors.link = "Add a link that starts with https://";
+  if (file && !(file.type in RESUME_TYPES)) errors.resume = "Upload a PDF or Word file.";
+  else if (file && file.size > MAX_RESUME_BYTES) errors.resume = "That file is over 4 MB. Try a smaller one.";
   if (form.get("promise_reply") !== "on" || form.get("promise_teach") !== "on") errors.agree = "Please agree to both promises to submit.";
 
-  const values: Record<string, string> = { name, email, country, bio, link, ...Object.fromEntries(FORMAT_KEYS.flatMap((f) => [[`price_${f}`, text(form, `price_${f}`)], [`offer_${f}`, String(form.get(`offer_${f}`) ?? "")]])) };
+  const values: Record<string, string> = { name, email, country, bio, link, about, ...Object.fromEntries(FORMAT_KEYS.flatMap((f) => [[`price_${f}`, text(form, `price_${f}`)], [`offer_${f}`, String(form.get(`offer_${f}`) ?? "")]])) };
   if (Object.keys(errors).length) return { errors, values: { ...values, courses: picked.join(",") } };
 
+  let resume = again?.mentor?.resume;
+  if (file) {
+    const url = await saveResume(file).catch(() => null);
+    if (!url) return { errors: { resume: "The upload didn't work. Try again?" }, values: { ...values, courses: picked.join(",") } };
+    resume = { url, name: file.name.slice(0, 120) };
+  }
   const profile: MentorProfile = {
     mentorId: again?.mentor?.mentorId ?? (await newUniqueMentorId()),
     country,
     bio,
     link,
+    resume,
+    about,
     courses: picked,
     prices,
     status: "review",
@@ -200,7 +214,8 @@ export async function dismissWelcome() {
 
 /** Edit prices (and the courses she reviews) from her dashboard. */
 export async function saveMentorPrices(_: FormState, form: FormData): Promise<FormState> {
-  const user = await approvedMentor();
+  const user = await currentUser(); // a mentor can set her prices while her application is still under review
+  if (!user || user.role !== "mentor" || !user.mentor) redirect("/login");
   const { prices, errors } = readPrices(form);
   const picked = form.getAll("courses").map(String).filter((slug) => courses.some((c) => c.slug === slug));
   if (!picked.length) errors.courses = "Pick at least one course you can review.";

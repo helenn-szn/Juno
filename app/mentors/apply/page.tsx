@@ -28,7 +28,7 @@ async function Form() {
     user && !mentor
       ? { signedIn: true, name: user.name, email: user.email, country: "", bio: "", link: "", courses: [], prices: {} }
       : user && mentor
-      ? { signedIn: true, name: user.name, email: user.email, country: mentor.country, bio: mentor.bio, link: mentor.link, courses: mentor.courses, prices: mentor.prices, note: mentor.note }
+      ? { signedIn: true, name: user.name, email: user.email, country: mentor.country, bio: mentor.bio, link: mentor.link, about: mentor.about, resumeName: mentor.resume?.name, courses: mentor.courses, prices: mentor.prices, note: mentor.note }
       : undefined;
   return <MentorApplyForm initial={initial} />;
 }

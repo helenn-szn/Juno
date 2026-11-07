@@ -22,7 +22,7 @@ function ShareCard({ className }: { className?: string }) {
 }
 
 // The frame around every app screen: sidebar on desktop, tab bar on phones. Learners get Juno.ai in the
-// corner; an approved mentor gets her own menu; a mentor still under review gets a bare page.
+// corner; a mentor gets her own menu, even while her application is under review.
 export default function AppLayout({ children }: LayoutProps<"/app">) {
   return (
     <div className="app-light flex min-h-dvh bg-background-full text-text-primary">
@@ -36,7 +36,7 @@ export default function AppLayout({ children }: LayoutProps<"/app">) {
 async function Frame({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
   const mentor = user?.role === "mentor";
-  if (mentor && user?.mentor?.status !== "approved") return <main className="flex min-w-0 flex-1 flex-col">{children}</main>;
+  if (mentor && !user?.mentor) return <main className="flex min-w-0 flex-1 flex-col">{children}</main>;
 
   const role = mentor ? "mentor" : "learner";
   const badge = mentor && user ? (await requestsForMentor(user.id)).filter((r) => r.status === "requested").length : 0;

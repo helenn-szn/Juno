@@ -52,6 +52,8 @@ async function Content() {
                 <div><dt className="inline font-medium">Prices: </dt><dd className="inline">{FORMAT_KEYS.filter((f) => m.mentor!.prices[f] !== undefined).map((f) => `${FORMATS[f].short} ${m.mentor!.prices[f]!.toFixed(2)}`).join(" · ")}</dd></div>
                 <div><dt className="inline font-medium">Work: </dt><dd className="inline"><a href={m.mentor!.link} target="_blank" rel="noreferrer" className="text-green underline">{m.mentor!.link}</a></dd></div>
               </dl>
+              {m.mentor!.about && <p className="rounded-xl bg-mint px-3.5 py-3 text-copy-sm"><b className="font-medium">About her, for the team: </b>{m.mentor!.about}</p>}
+              {m.mentor!.resume && <a href={m.mentor!.resume.url} target="_blank" rel="noreferrer" className="self-start text-copy-sm text-green underline">Resume: {m.mentor!.resume.name}</a>}
               <ReviewApplication userId={m.id} />
             </article>
           ))
