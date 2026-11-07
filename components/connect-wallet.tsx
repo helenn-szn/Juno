@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { RiFileCopyLine, RiLinkUnlinkM, RiWalletLine } from "@remixicon/react";
+import { cx } from "@/utils/cx";
 import { Button } from "@/components/base/buttons/button";
 import { Dropdown, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 
@@ -10,8 +11,6 @@ import { Dropdown, DropdownItem, DropdownPopover, DropdownTrigger } from "@/comp
 // address, never a secret key: the wallet itself keeps the keys and does any signing.
 const KEY = "juno-connected-wallet";
 
-// For now the button is a quiet, inactive placeholder. Set this to true to bring the real connection back.
-const ACTIVE = false;
 
 function read() {
   try {
@@ -47,26 +46,14 @@ async function loadKit() {
   return StellarWalletsKit;
 }
 
+// A light, outlined (secondary) button, so it never competes with the page's main action.
+const secondary = "h-11 rounded-full border border-separator-border bg-white px-4 text-text-primary shadow-none [background-image:none] hover:border-text-tertiary hover:bg-mint";
+
 export const shortAddress = (address: string) => `${address.slice(0, 4)}…${address.slice(-4)}`;
 
-/** The dark green "Connect wallet" button in every dashboard header. */
+/** The "Connect wallet" button in every dashboard header. */
 export function ConnectWallet() {
   const address = useSyncExternalStore(subscribe, read, () => null);
-
-  if (!ACTIVE) {
-    return (
-      <Button
-        variant="secondary"
-        disabled
-        leadingIcon={RiWalletLine}
-        title="Connecting your own wallet is coming soon"
-        aria-label="Connect wallet, coming soon"
-        className="h-11 cursor-not-allowed rounded-full border border-line bg-white px-4 text-text-secondary opacity-70 shadow-none [background-image:none] disabled:border-line disabled:bg-white disabled:text-text-secondary max-sm:w-11 max-sm:px-0"
-      >
-        <span className="max-sm:sr-only">Connect wallet</span>
-      </Button>
-    );
-  }
 
   async function connect() {
     try {
@@ -87,7 +74,7 @@ export function ConnectWallet() {
 
   if (!address) {
     return (
-      <Button onClick={connect} leadingIcon={RiWalletLine} className="h-11 rounded-full bg-green px-4 text-mint shadow-none [background-image:none] hover:bg-green/85 max-sm:w-11 max-sm:px-0" aria-label="Connect wallet">
+      <Button variant="secondary" onClick={connect} leadingIcon={RiWalletLine} className={cx(secondary, "max-sm:w-11 max-sm:px-0")} aria-label="Connect wallet">
         <span className="max-sm:sr-only">Connect wallet</span>
       </Button>
     );
@@ -96,7 +83,7 @@ export function ConnectWallet() {
     <Dropdown>
       <DropdownTrigger
         aria-label={`Connected wallet ${address}`}
-        className="flex h-11 items-center gap-2 rounded-full bg-green px-4 text-body-medium text-mint outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring"
+        className={cx(secondary, "flex items-center gap-2 text-body-medium outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring")}
       >
         <RiWalletLine className="size-[18px]" aria-hidden />
         <span className="max-sm:sr-only font-mono text-body-2-medium">{shortAddress(address)}</span>
