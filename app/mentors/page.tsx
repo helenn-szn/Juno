@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: "Review a woman's work when her study agent asks for help. Set your own price. Get paid on Stellar the second you say yes.",
 };
 
-const APPLY = "/mentors/apply";
+const APPLY = "/signup?as=mentor"; // create her account first, then the application
 const LOG_IN = "/login";
 
 const steps = [

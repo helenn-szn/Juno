@@ -46,13 +46,15 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
   if (password.length < 8) errors.password = "Use at least 8 characters.";
   if (Object.keys(errors).length) return { errors, values: { name, email } };
 
-  const role = form.get("role") === "sponsor" ? "sponsor" : "learner";
+  const role = form.get("role") === "sponsor" ? "sponsor" : form.get("role") === "mentor" ? "mentor" : "learner";
   const user = await createUser(name, email, password, role);
   await startSession(user.id);
   // Signed up through a sponsor's invite link: she is that sponsor's learner.
   const invite = role === "learner" ? await findInvite(String(form.get("invite") ?? "")) : undefined;
   if (invite?.token) await linkInvite(invite.token, user.id);
   setUpWalletLater(user.id);
+  // A mentor goes straight on to her application (her wallet opens meanwhile).
+  if (role === "mentor") redirect("/mentors/apply");
   await notify(
     user.id,
     role === "sponsor"

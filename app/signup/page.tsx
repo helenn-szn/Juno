@@ -20,6 +20,7 @@ export default function SignUp(props: PageProps<"/signup">) {
 
 async function Form({ searchParams }: Pick<PageProps<"/signup">, "searchParams">) {
   const query = await searchParams;
+  if (query.as === "mentor") return <AuthForm mode="signup" role="mentor" />;
   if (query.as === "sponsor") return <AuthForm mode="signup" role="sponsor" />;
 
   const invite = typeof query.invite === "string" ? await findInvite(query.invite) : undefined;
