@@ -149,7 +149,7 @@ html {
   scroll-behavior: smooth;
 }
 section {
-  scroll-margin-top: 24px;
+  scroll-margin-top: 88px; /* clears the landing header, which stays on screen */
 }
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -180,7 +180,73 @@ section {
   animation: coin-rise 600ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 }
 
+/* Hero: the words rise in one after another, then the offer card, then the "paid" chip pops. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+.hero-in {
+  animation: rise-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+.pop-in {
+  animation: pop-in 450ms cubic-bezier(0.3, 1.5, 0.5, 1) backwards;
+  animation-delay: var(--d, 0ms);
+}
+/* "Book review" gets a quick press right before the chip appears. */
+@keyframes press {
+  50% {
+    transform: scale(0.93);
+  }
+}
+.press {
+  animation: press 300ms ease-in-out;
+  animation-delay: var(--d, 0ms);
+}
+/* Once the coins have risen, the fan floats gently. */
+@keyframes float {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.fan-float {
+  animation: float 6s ease-in-out 1.2s infinite;
+}
+
+/* Cards lift a little under the pointer. */
+.lift {
+  transition:
+    transform 220ms ease-out,
+    opacity 500ms ease-out,
+    box-shadow 220ms ease-out;
+}
+@media (hover: hover) {
+  .lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgb(0 0 0 / 0.18);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .hero-in,
+  .pop-in,
+  .press,
+  .fan-float {
+    animation: none;
+  }
+  .lift,
+  .lift:hover {
+    transition: none;
+    transform: none;
+  }
   [data-reveal] {
     transition: none;
   }

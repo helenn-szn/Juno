@@ -141,12 +141,15 @@ Every screen needs: a loading state, an empty state, and a friendly error state 
 Landing page scroll animation, kept subtle:
 - Each section fades in and rises about 16px as it scrolls into view (≈500ms, ease-out), once only
 - Cards inside a section stagger by about 80ms
-- The hero coin fan's coins rise in one after another on page load, the purple centre coin last
+- The hero coin fan's coins rise in one after another on page load, the purple centre coin last, then the fan floats gently. The hero text rises in step by step, the offer card follows, "Book review" gets a press and the neon "Done! Mentor paid." chip pops in
+- Cards lift 4px on hover; the three problem figures count up when they scroll into view (the final number is in the page from the start)
 - Use CSS plus a small IntersectionObserver hook (or CSS scroll-driven animations); no animation library
 - Respect `prefers-reduced-motion`: show everything instantly
 - Content must be visible without JavaScript (animate from a class added by JS, never hide by default in CSS)
 
 - Nav links (header, mobile menu, footer) scroll smoothly to their section: `scroll-behavior: smooth` on `html`, plus `scroll-margin-top` on sections so headings aren't hidden. Off under `prefers-reduced-motion`
+
+The landing page header stays at the top while she scrolls and gets a solid dark background once she has. Its links are How it works, Sponsors (the `/sponsors` page), Who it's for and Skills to work.
 
 Landing page header on phones (under 760px): the links collapse into a three-line menu button (44px+ tap target, `aria-expanded`, `aria-controls`). Tapping it opens a full-width menu under the header with the three links and a full-width "Get started" button; the icon turns into an X. Tapping a link scrolls to its section and closes the menu. Escape also closes it.
 
