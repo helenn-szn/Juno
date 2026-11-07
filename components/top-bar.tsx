@@ -2,10 +2,16 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { RiArrowLeftLine } from "@remixicon/react";
 import { AccountMenu } from "@/components/account-menu";
+import { NotificationsBell } from "@/components/notifications-bell";
 import { ConnectWallet } from "@/components/connect-wallet";
 import { CoinFan } from "@/components/coin-fan";
 import { CourseSearch } from "@/components/course-search";
+import { loadBell } from "@/app/notifications";
 import { currentUser } from "@/lib/session";
+
+async function Bell() {
+  return <NotificationsBell initial={await loadBell()} />;
+}
 
 async function Account() {
   const user = await currentUser();
@@ -35,6 +41,9 @@ export function TopBar({ title, back, search = false }: { title: string; back?: 
       <h1 className="me-auto min-w-0 truncate text-title-1-medium tracking-[-0.03em]">{title}</h1>
       {search && <CourseSearch className="order-last sm:order-none sm:w-75" />}
       <ConnectWallet />
+      <Suspense fallback={<span className="size-11 rounded-full border border-separator-border" aria-hidden />}>
+        <Bell />
+      </Suspense>
       <Suspense fallback={<span className="size-11 rounded-full bg-purple" aria-hidden />}>
         <Account />
       </Suspense>

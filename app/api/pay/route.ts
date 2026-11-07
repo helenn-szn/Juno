@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server";
 import { MENTOR_REVIEW_PRICE } from "@/lib/constants";
 import { currentUser } from "@/lib/session";
+import { notify } from "@/lib/notifications";
 import { recordReview } from "@/lib/sponsoring";
 import { usdcBalanceOrZero } from "@/lib/stellar";
 import { payForMentorReview } from "@/lib/x402";
@@ -20,6 +21,14 @@ export async function POST(request: Request) {
   const price = Number(MENTOR_REVIEW_PRICE);
   const own = user.wallet && (await usdcBalanceOrZero(user.wallet.publicKey)) >= price ? user.wallet.secret : undefined;
   const payment = await payForMentorReview(new URL("/api/mentor-review", request.url), own);
+  if (payment.ok) {
+    await notify(user.id, {
+      kind: "paid",
+      title: "Done! Mentor paid.",
+      text: own ? `Your review is on its way. ${price.toFixed(2)} USDC came from your wallet.` : "Your review is on its way.",
+      tx: payment.transaction,
+    });
+  }
   if (payment.ok && own) await recordReview(user.id, course, price, payment.transaction).catch((error) => console.error("Review not recorded:", error));
   return NextResponse.json(payment, { status: payment.ok ? 200 : 400 });
 }

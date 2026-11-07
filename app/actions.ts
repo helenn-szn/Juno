@@ -8,7 +8,8 @@ import { issueCertificate, recordOnStellar } from "@/lib/certificates";
 import type { TopUpResult } from "@/app/sponsor/actions";
 import { findCourse, requiredLessons } from "@/lib/courses";
 import { profileSchema } from "@/lib/profile";
-import { claimSeat, findInvite, fundPending, linkInvite } from "@/lib/sponsoring";
+import { notify, usdc } from "@/lib/notifications";
+import { claimSeat, findInvite, fundPending, linkInvite, sponsorsOf } from "@/lib/sponsoring";
 import { currentUser, endSession, startSession } from "@/lib/session";
 import { buyUsdc } from "@/lib/stellar";
 import { Keypair } from "@stellar/stellar-sdk";
@@ -52,6 +53,12 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
   const invite = role === "learner" ? await findInvite(String(form.get("invite") ?? "")) : undefined;
   if (invite?.token) await linkInvite(invite.token, user.id);
   setUpWalletLater(user.id);
+  await notify(
+    user.id,
+    role === "sponsor"
+      ? { kind: "info", title: "Welcome to Juno", text: "Add some test USDC to your wallet, then invite a learner or open course seats.", href: "/sponsor/fund" }
+      : { kind: "info", title: "Welcome to Juno", text: "Tell us when you can study and we'll plan your first course around you.", href: "/app/onboarding" },
+  );
   redirect(role === "sponsor" ? "/sponsor" : invite ? `/app/courses/${invite.courseSlug}` : "/app");
 }
 
@@ -108,8 +115,15 @@ export async function completeLesson(slug: string, lessonIndex: number) {
   }));
   revalidatePath("/app", "layout");
 
+  if (moduleFinished) {
+    await notify(user.id, { kind: "skill", title: "Skill minted. That's yours forever.", text: `You finished “${unit.title}” in ${course.title}.`, href: `/app/courses/${slug}` });
+  }
   if (moduleFinished && done + 1 === course.modules.length) {
     const certificate = await issueCertificate(user, course);
+    await notify(user.id, { kind: "skill", title: "Your certificate is ready", text: `You finished ${course.title}. Download it or share the link.`, href: `/app/certificates/${certificate.id}` });
+    for (const sponsorId of await sponsorsOf(user.id)) {
+      await notify(sponsorId, { kind: "skill", title: "A learner is certified", text: `${user.name.split(" ")[0]} finished ${course.title} and earned her certificate.`, href: "/sponsor#learners" });
+    }
     after(() => recordOnStellar(certificate.id).catch((error) => console.error("Certificate record failed:", error)));
     redirect(`/app/certificates/${certificate.id}`);
   }
@@ -145,6 +159,7 @@ export async function fundMyWallet(amount: number): Promise<TopUpResult> {
   if (![10, 20, 50].includes(amount)) return { ok: false, reason: "failed" };
   try {
     const tx = await buyUsdc(Keypair.fromSecret(user.wallet.secret), amount);
+    await notify(user.id, { kind: "paid", title: "Wallet topped up", text: `${usdc(amount)} is in your learning wallet.`, tx, href: "/app/wallet" });
     revalidatePath("/app", "layout");
     return { ok: true, tx };
   } catch (error) {
