@@ -141,7 +141,8 @@ Every screen needs: a loading state, an empty state, and a friendly error state 
 Landing page scroll animation, kept subtle:
 - Each section fades in and rises about 16px as it scrolls into view (≈500ms, ease-out), once only
 - Cards inside a section stagger by about 80ms
-- The hero coin fan's coins rise in one after another on page load, the purple centre coin last
+- The hero coin fan's coins rise in one after another on page load, the purple centre coin last, then the fan floats gently. The hero text rises in step by step, the offer card follows, "Book review" gets a press and the neon "Done! Mentor paid." chip pops in
+- Cards lift 4px on hover; the three problem figures count up when they scroll into view (the final number is in the page from the start)
 - Use CSS plus a small IntersectionObserver hook (or CSS scroll-driven animations); no animation library
 - Respect `prefers-reduced-motion`: show everything instantly
 - Content must be visible without JavaScript (animate from a class added by JS, never hide by default in CSS)

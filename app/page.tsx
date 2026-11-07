@@ -4,6 +4,7 @@ import { ButtonLink } from "@/components/base/buttons/button";
 import { CoinFan } from "@/components/coin-fan";
 import { LandingHeader } from "@/components/landing-header";
 import { CourseCoverImage } from "@/components/course-cover";
+import { CountUp } from "@/components/count-up";
 import { LandingMotion } from "@/components/landing-motion";
 import { courses, moduleCount, type CourseCover } from "@/lib/courses";
 import { cx } from "@/utils/cx";
@@ -19,19 +20,19 @@ const SPONSORS = "/sponsors";
 
 const problem = [
   {
-    figure: "<13%",
+    figure: { prefix: "<", value: 13, suffix: "%" },
     text: "of learners finish most online courses. They stall when they're stuck and nobody answers.",
     source: "Onah et al., 2014",
     href: "https://wrap.warwick.ac.uk/65543",
   },
   {
-    figure: "24%",
+    figure: { prefix: "", value: 24, suffix: "%" },
     text: "of a woman's monthly income buys an entry-level phone in low and middle-income countries, twice the share for men.",
     source: "GSMA, 2025",
     href: "https://www.gsma.com/newsroom/press-release/progress-closing-the-mobile-internet-gender-gap-stalls-in-lmics-gsma-mobile-gender-gap-report-2025",
   },
   {
-    figure: "29%",
+    figure: { prefix: "", value: 29, suffix: "%" },
     text: "is the mobile internet gender gap in Sub-Saharan Africa. Monthly subscriptions shut women out.",
     source: "GSMA, 2025",
     href: "https://www.gsma.com/newsroom/press-release/progress-closing-the-mobile-internet-gender-gap-stalls-in-lmics-gsma-mobile-gender-gap-report-2025",
@@ -149,28 +150,30 @@ export default function Landing() {
       <main>
         <section id="top" className="mx-auto flex max-w-312 flex-wrap items-center gap-12 px-6 pt-14 pb-20">
           <div className="flex min-w-0 grow basis-110 flex-col gap-6">
-            <span className="self-start rounded-full bg-purple px-3.5 py-1.5 text-body-medium text-dark-green">
+            <span style={{ "--d": "0ms" } as React.CSSProperties} className="hero-in self-start rounded-full bg-purple px-3.5 py-1.5 text-body-medium text-dark-green">
               Built with x402 on Stellar
             </span>
-            <h1 className="text-hero">
+            <h1 style={{ "--d": "100ms" } as React.CSSProperties} className="hero-in text-hero">
               Where women <span className="text-text-accent">mint</span> their skills.
             </h1>
-            <p className="max-w-135 text-lead text-text-secondary">
+            <p style={{ "--d": "220ms" } as React.CSSProperties} className="hero-in max-w-135 text-lead text-text-secondary">
               A sponsored learning wallet with an AI study agent. Free lessons first. When she&apos;s stuck, the agent
               pays a mentor in seconds. Every skill she earns is proven on-chain.
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div style={{ "--d": "340ms" } as React.CSSProperties} className="hero-in flex flex-wrap gap-3">
               <ButtonLink href={APP} className={large}>Start learning</ButtonLink>
               <ButtonLink href={SPONSORS} variant="secondary" className={cx(large, outline)}>Sponsor a woman</ButtonLink>
             </div>
           </div>
 
           <figure className="flex min-w-0 grow basis-90 flex-col items-center gap-4">
-            <CoinFan label="Juno coin fan" animate className="w-full max-w-115" />
-            <div className="flex w-full max-w-95 flex-col gap-3 rounded-[20px] bg-green p-4.5">
+            <div className="fan-float w-full max-w-115">
+              <CoinFan label="Juno coin fan" animate className="w-full" />
+            </div>
+            <div style={{ "--d": "800ms" } as React.CSSProperties} className="hero-in flex w-full max-w-95 flex-col gap-3 rounded-[20px] bg-green p-4.5">
               <p className="text-copy-sm">A mentor can review your agent today. It costs 0.50 USDC from your wallet. Book it?</p>
               <div className="flex gap-2">
-                <span className="flex min-h-11 flex-1 items-center justify-center rounded-full bg-radiant text-body-medium text-dark-green">
+                <span style={{ "--d": "1500ms" } as React.CSSProperties} className="press flex min-h-11 flex-1 items-center justify-center rounded-full bg-radiant text-body-medium text-dark-green">
                   Book review
                 </span>
                 <span className="flex min-h-11 flex-1 items-center justify-center rounded-full border border-mint text-body-medium">
@@ -178,7 +181,7 @@ export default function Landing() {
                 </span>
               </div>
             </div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-neon px-4 py-2 text-body-medium text-dark-green">
+            <span style={{ "--d": "1850ms" } as React.CSSProperties} className="pop-in inline-flex items-center gap-2 rounded-full bg-neon px-4 py-2 text-body-medium text-dark-green">
               <span className="size-3 rounded-full bg-dark-green" />
               Done! Mentor paid.
             </span>
@@ -190,8 +193,8 @@ export default function Landing() {
             <h2 data-reveal className="max-w-190 text-section">Free lessons are everywhere. Real help isn&apos;t.</h2>
             <div className={grid("grid-cols-[repeat(auto-fit,minmax(240px,1fr))]")}>
               {problem.map((p) => (
-                <div key={p.figure} data-reveal className="flex flex-col gap-2 rounded-2xl bg-white p-6">
-                  <span className="text-stat text-green">{p.figure}</span>
+                <div key={p.text} data-reveal className="lift flex flex-col gap-2 rounded-2xl bg-white p-6">
+                  <CountUp className="text-stat text-green" {...p.figure} />
                   <span className="text-copy">{p.text}</span>
                   <a href={p.href} className="text-body-2-regular text-green underline">{p.source}</a>
                 </div>
@@ -207,7 +210,7 @@ export default function Landing() {
           </div>
           <ol className={grid("grid-cols-[repeat(auto-fit,minmax(240px,1fr))]")}>
             {steps.map((s, i) => (
-              <li key={s.title} data-reveal className="flex flex-col gap-3 rounded-2xl bg-green p-6">
+              <li key={s.title} data-reveal className="lift flex flex-col gap-3 rounded-2xl bg-green p-6">
                 <span className={cx("flex size-10 items-center justify-center rounded-full text-headline-medium text-dark-green", s.dot)}>
                   {i + 1}
                 </span>
@@ -231,7 +234,7 @@ export default function Landing() {
           <ul className={grid("grid-cols-[repeat(auto-fill,minmax(220px,1fr))]")}>
             {courses.map((course, index) => (
               <li key={course.slug} data-reveal>
-                <a href={APP} className="flex h-full flex-col overflow-hidden rounded-2xl bg-green outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
+                <a href={APP} className="lift flex h-full flex-col overflow-hidden rounded-2xl bg-green outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
                   <div className="relative">
                     <CourseCoverImage icon={course.icon} cover={coverOrder[index]} className="h-30 [&>svg]:size-14" />
                     {course.isNew && (
@@ -302,7 +305,7 @@ export default function Landing() {
             </div>
             <div className={grid("grid-cols-[repeat(auto-fit,minmax(260px,1fr))]")}>
               {audiences.map((a) => (
-                <div key={a.id} id={a.id} data-reveal className={cx("flex flex-col gap-3 rounded-2xl p-7 text-dark-green", a.surface)}>
+                <div key={a.id} id={a.id} data-reveal className={cx("lift flex flex-col gap-3 rounded-2xl p-7 text-dark-green", a.surface)}>
                   <h3 className="text-role">{a.title}</h3>
                   <p className="text-copy">{a.text}</p>
                   <a href={a.href} className="mt-auto self-start text-headline-medium underline">{a.action}</a>
@@ -324,7 +327,7 @@ export default function Landing() {
             </p>
           </div>
           <div className={grid("grid-cols-[repeat(auto-fit,minmax(270px,1fr))]")}>
-            <div data-reveal className={cx(card, "bg-mint text-dark-green")}>
+            <div data-reveal className={cx(card, "lift bg-mint text-dark-green")}>
               <span className="text-body-2-medium text-green">01 · Certificate</span>
               <div className="flex items-center gap-4 rounded-[14px] border border-paper-line bg-white p-4.5">
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -342,7 +345,7 @@ export default function Landing() {
               <p className="text-copy-sm">Anyone can scan the code and check it&apos;s real.</p>
             </div>
 
-            <div data-reveal className={cx(card, "bg-green")}>
+            <div data-reveal className={cx(card, "lift bg-green")}>
               <span className="text-body-2-medium text-text-accent">02 · Resume</span>
               <div className="flex flex-col gap-3 rounded-[14px] bg-dark-green p-4.5">
                 <div className="flex items-center gap-2.5">
@@ -362,7 +365,7 @@ export default function Landing() {
               <p className="text-copy-sm text-text-secondary">Built from her skills and projects with Juno templates.</p>
             </div>
 
-            <div data-reveal className={cx(card, "bg-purple text-dark-green")}>
+            <div data-reveal className={cx(card, "lift bg-purple text-dark-green")}>
               <span className="text-body-2-medium">03 · Work</span>
               <ul className="flex flex-col rounded-[14px] bg-mint px-4.5 py-2">
                 {jobs.map((job) => (

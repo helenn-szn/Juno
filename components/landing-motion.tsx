@@ -24,6 +24,9 @@ export function LandingMotion() {
           if (!entry.isIntersecting) continue;
           entry.target.classList.remove("reveal-hidden");
           observer.unobserve(entry.target);
+          // The stagger delay is only for the reveal; clear it so hover effects respond at once.
+          const el = entry.target as HTMLElement;
+          setTimeout(() => (el.style.transitionDelay = ""), 700 + parseInt(el.style.transitionDelay || "0", 10));
         }
       },
       { threshold: 0.15 },
