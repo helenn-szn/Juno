@@ -64,13 +64,17 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
 
 export async function logIn(_: FormState, form: FormData): Promise<FormState> {
   const email = field(form, "email").toLowerCase();
-  const user = await findUserByEmail(email);
+  let user = await findUserByEmail(email);
+  // The demo's seeded admin: created the first time she logs in with the ADMIN_EMAIL and ADMIN_PASSWORD from the environment.
+  if (!user && process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD && email === process.env.ADMIN_EMAIL.toLowerCase() && String(form.get("password") ?? "") === process.env.ADMIN_PASSWORD) {
+    user = await createUser("Juno team", email, process.env.ADMIN_PASSWORD, "admin");
+  }
   if (!user || !checkPassword(String(form.get("password") ?? ""), user.passwordHash)) {
     return { errors: { password: "That email and password don't match." }, values: { email } };
   }
   await startSession(user.id);
   setUpWalletLater(user.id); // opens her wallet if sign-up could not, and sends any waiting budget
-  redirect(user.role === "sponsor" ? "/sponsor" : "/app");
+  redirect(user.role === "sponsor" ? "/sponsor" : user.role === "admin" ? "/admin" : "/app");
 }
 
 export async function logOut() {

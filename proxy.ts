@@ -7,7 +7,7 @@ export function proxy(request: NextRequest) {
   const signedIn = readSessionToken(request.cookies.get(SESSION_COOKIE)?.value) !== null;
   const { pathname } = request.nextUrl;
 
-  if (!signedIn && (pathname.startsWith("/app") || pathname === "/sponsor")) {
+  if (!signedIn && (pathname.startsWith("/app") || pathname === "/sponsor" || pathname.startsWith("/admin"))) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
   if (signedIn && (pathname === "/signup" || pathname === "/login")) {
@@ -17,5 +17,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/app/:path*", "/sponsor", "/signup", "/login"],
+  matcher: ["/app/:path*", "/sponsor", "/admin/:path*", "/signup", "/login"],
 };

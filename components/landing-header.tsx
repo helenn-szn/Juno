@@ -6,11 +6,13 @@ import { ButtonLink } from "@/components/base/buttons/button";
 import { CoinFan } from "@/components/coin-fan";
 import { cx } from "@/utils/cx";
 
+const outline = "border-mint bg-transparent text-mint hover:border-mint hover:bg-green";
+
 const links = [
   { href: "#how", label: "How it works" },
-  { href: "/sponsors", label: "Sponsors" },
   { href: "#who", label: "Who it's for" },
   { href: "#work", label: "Skills to work" },
+  { href: "/sponsors", label: "Sponsor" },
 ];
 
 // The landing header. Above 760px the links sit in a row. Below, they fold into
@@ -54,6 +56,9 @@ export function LandingHeader({ appHref }: { appHref: string }) {
         {links.map((link) => (
           <a key={link.href} href={link.href} className="hover:text-text-accent">{link.label}</a>
         ))}
+        <ButtonLink href="/mentors" variant="secondary" className={cx("h-11 rounded-full px-4.5 text-copy-sm font-medium shadow-none", outline)}>
+          Become a mentor
+        </ButtonLink>
         <ButtonLink href={appHref} className="h-11 rounded-full px-4.5 text-copy-sm font-medium shadow-none">
           Get started
         </ButtonLink>
@@ -81,7 +86,10 @@ export function LandingHeader({ appHref }: { appHref: string }) {
               {link.label}
             </a>
           ))}
-          <ButtonLink href={appHref} className="mt-3 h-13 w-full rounded-full text-cta shadow-none">
+          <ButtonLink href="/mentors" variant="secondary" className={cx("mt-3 h-13 w-full rounded-full text-cta shadow-none", outline)}>
+            Become a mentor
+          </ButtonLink>
+          <ButtonLink href={appHref} className="mt-2 h-13 w-full rounded-full text-cta shadow-none">
             Get started
           </ButtonLink>
         </nav>

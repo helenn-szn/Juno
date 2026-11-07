@@ -17,9 +17,31 @@ import { fitScore } from "@/lib/profile";
 import { fundPending } from "@/lib/sponsoring";
 import { ensureJunoId } from "@/lib/users";
 import { JunoId } from "@/components/juno-id";
+import { MentorHome } from "@/components/mentor-home";
+import { MentorUnderReview } from "@/components/mentor-under-review";
 import { currentUser } from "@/lib/session";
 
+// Accepting a request pays the mentor with x402, which can take a moment on Stellar.
+export const maxDuration = 60;
+
+// /app is each person's home: a learner's dashboard, or a mentor's requests (or her application status).
 export default function Dashboard() {
+  return (
+    <Suspense fallback={<PageSpinner />}>
+      <Home />
+    </Suspense>
+  );
+}
+
+async function Home() {
+  const user = await currentUser();
+  if (!user) redirect("/login");
+  if (user.role === "sponsor") redirect("/sponsor");
+  if (user.role === "admin") redirect("/admin");
+  if (user.role === "mentor" && user.mentor) {
+    if (user.mentor.status === "changes") redirect("/mentors/apply");
+    return user.mentor.status === "approved" ? <MentorHome user={user} /> : <MentorUnderReview user={user} />;
+  }
   return (
     <>
       <TopBar title="Dashboard" search />
@@ -33,7 +55,6 @@ export default function Dashboard() {
 async function Content() {
   const user = await currentUser();
   if (!user) redirect("/login");
-  if (user.role === "sponsor") redirect("/sponsor");
   // If a sponsor's budget could not be sent earlier, try again now.
   after(() => fundPending(user.id).catch(() => {}));
 

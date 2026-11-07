@@ -9,6 +9,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Keypair } from "@stellar/stellar-sdk";
 import { Redis } from "@upstash/redis";
+import type { MentorProfile } from "./mentors-shared";
 import type { Profile } from "./profile";
 import { openWallet } from "./stellar";
 
@@ -17,7 +18,7 @@ export type User = {
   name: string;
   email: string;
   passwordHash: string;
-  role?: "learner" | "sponsor"; // sponsors fund learners; no role means learner
+  role?: "learner" | "sponsor" | "mentor" | "admin"; // sponsors fund learners, mentors review their work; no role means learner
   createdAt: string;
   startedCourses: string[];
   profile?: Profile; // her answers before the first course: experience, goal and schedule
@@ -26,6 +27,7 @@ export type User = {
   junoId?: string; // her short, shareable ID, like JN-7K2Q9 (learners only)
   modulesDone?: Record<string, number>; // finished modules per course slug
   lessonsDone?: Record<string, number[]>; // finished lessons of her current module, per course slug
+  mentor?: MentorProfile; // a mentor's application, prices and status (mentors only)
   wallet?: { publicKey: string; secret: string };
 };
 
@@ -78,7 +80,7 @@ export async function findUserByJunoId(junoId: string) {
 
 // Picks an ID nobody has yet and keeps it for this learner. Accounts made before IDs existed get theirs the first time it's needed.
 export async function ensureJunoId(user: User) {
-  if (user.junoId || user.role === "sponsor") return user.junoId;
+  if (user.junoId || (user.role && user.role !== "learner")) return user.junoId;
   for (let attempt = 0; attempt < 10; attempt++) {
     const junoId = newJunoId();
     if (redis) {
@@ -89,7 +91,30 @@ export async function ensureJunoId(user: User) {
   }
 }
 
-export async function createUser(name: string, email: string, password: string, role: "learner" | "sponsor" = "learner"): Promise<User> {
+// Mentor IDs: "MN-" and 5 characters from the same alphabet. Unique among mentors.
+const newMentorId = () => "MN-" + Array.from(crypto.randomBytes(5), (byte) => JUNO_ID_CHARS[byte % JUNO_ID_CHARS.length]).join("");
+
+export async function newUniqueMentorId() {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const mentorId = newMentorId();
+    if (redis ? await redis.set(`mentorid:${mentorId}`, "1", { nx: true }) : !(await readFile()).some((u) => u.mentor?.mentorId === mentorId)) return mentorId;
+  }
+  throw new Error("Could not make a mentor ID.");
+}
+
+/** Every mentor, newest application first. */
+export async function listMentors(): Promise<User[]> {
+  let all: User[];
+  if (redis) {
+    const ids = (await redis.smembers("mentors")) as string[];
+    all = ids.length ? ((await redis.mget<(User | null)[]>(...ids.map((id) => `user:${id}`))).filter(Boolean) as User[]) : [];
+  } else {
+    all = (await readFile()).filter((u) => u.role === "mentor");
+  }
+  return all.filter((u) => u.mentor).sort((a, b) => (b.mentor!.submittedAt > a.mentor!.submittedAt ? 1 : -1));
+}
+
+export async function createUser(name: string, email: string, password: string, role: "learner" | "sponsor" | "mentor" | "admin" = "learner", mentor?: MentorProfile): Promise<User> {
   const user: User = {
     id: crypto.randomUUID(),
     name,
@@ -98,11 +123,13 @@ export async function createUser(name: string, email: string, password: string, 
     role,
     createdAt: new Date().toISOString(),
     startedCourses: [],
+    ...(mentor ? { mentor } : {}),
   };
   if (redis) {
     // Claiming the email is atomic, so two sign-ups can never share one address.
     if (!(await redis.set(`email:${user.email}`, user.id, { nx: true }))) throw new Error("That email is taken.");
     await redis.set(`user:${user.id}`, user);
+    if (role === "mentor") await redis.sadd("mentors", user.id);
   } else {
     await writeFile([...(await readFile()), user]);
   }

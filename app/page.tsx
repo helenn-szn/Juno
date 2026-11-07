@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 
 const APP = "/app";
 const SPONSORS = "/sponsors";
+const MENTORS = "/mentors";
 
 const problem = [
   {
@@ -75,7 +76,7 @@ const audiences = [
     title: "Mentors",
     text: "Share what you know and get paid per review, instantly, with a record of every woman you helped.",
     action: "Become a mentor",
-    href: APP,
+    href: MENTORS,
   },
   {
     id: "sponsor",
@@ -95,16 +96,16 @@ const footerLinks = [
     title: "Explore",
     links: [
       { href: "#how", label: "How it works" },
-      { href: SPONSORS, label: "Sponsors" },
       { href: "#who", label: "Who it's for" },
       { href: "#work", label: "Skills to work" },
+      { href: SPONSORS, label: "Sponsor" },
     ],
   },
   {
     title: "Get involved",
     links: [
       { href: "#start", label: "Start learning" },
-      { href: "#mentor", label: "Become a mentor" },
+      { href: MENTORS, label: "Become a mentor" },
       { href: SPONSORS, label: "Sponsor a woman" },
     ],
   },
@@ -316,7 +317,7 @@ export default function Landing() {
           </p>
           <div data-reveal className="flex flex-wrap justify-center gap-3">
             <ButtonLink href={APP} className={large}>Launch the demo</ButtonLink>
-            <ButtonLink href={APP} id="mentor" variant="secondary" className={cx(large, outline)}>
+            <ButtonLink href={MENTORS} id="mentor" variant="secondary" className={cx(large, outline)}>
               Become a mentor
             </ButtonLink>
           </div>

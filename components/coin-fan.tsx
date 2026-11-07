@@ -27,11 +27,23 @@ const palettes = {
     baseFace: "fill-green",
     baseSide: "fill-dark-green",
   },
+  // On the purple band of the mentors page: dark coins, and the newest one radiant (purple would vanish there).
+  ink: {
+    stem: "stroke-dark-green",
+    stemOff: "stroke-dark-green",
+    surface: "stroke-purple",
+    lit: { face: "fill-dark-green", side: "fill-green", line: "" },
+    off: { face: "fill-purple", side: "fill-purple", line: "stroke-dark-green" },
+    baseFace: "fill-dark-green",
+    baseSide: "fill-green",
+  },
 };
 
 const purple = { face: "fill-purple", side: "fill-coin-newest-side", line: "" };
+const radiant = { face: "fill-radiant", side: "fill-coin-side", line: "" };
 
 type Palette = (typeof palettes)["dark"];
+type Theme = keyof typeof palettes;
 
 type CoinFanProps = React.ComponentProps<"svg"> & {
   label?: string;
@@ -39,9 +51,9 @@ type CoinFanProps = React.ComponentProps<"svg"> & {
   animate?: boolean;
   /** Coins earned, 0 to 5. */
   earned?: number;
-  theme?: "dark" | "light";
+  theme?: Theme;
   /** Colour of the coin outlines. Defaults to the surface the logo sits on. */
-  surface?: "stroke-dark-green" | "stroke-green" | "stroke-white" | "stroke-footer";
+  surface?: "stroke-dark-green" | "stroke-green" | "stroke-white" | "stroke-footer" | "stroke-purple" | "stroke-mint";
 };
 
 export function CoinFan({ label, animate = false, earned = 5, theme = "dark", surface, ...svg }: CoinFanProps) {
@@ -82,7 +94,7 @@ export function CoinFan({ label, animate = false, earned = 5, theme = "dark", su
           delay={animate ? index * 120 : undefined}
         />
       ))}
-      <Coin angle={0} tone={earned >= 1 ? purple : palette.off} surface={outlineClass} delay={animate ? 4 * 120 : undefined} />
+      <Coin angle={0} tone={earned >= 1 ? (theme === "ink" ? radiant : purple) : palette.off} surface={outlineClass} delay={animate ? 4 * 120 : undefined} />
       <g className={outlineClass} {...outline}>
         <path d="M54,124 A16,5 0 0,0 86,124 L86,129 A16,5 0 0,1 54,129 Z" className={palette.baseSide} />
         <ellipse cx="70" cy="124" rx="16" ry="5" className={palette.baseFace} />
