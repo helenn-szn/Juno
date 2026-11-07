@@ -25,7 +25,7 @@ export default function Profile() {
 async function Content() {
   const user = await currentUser();
   if (!user) redirect("/login");
-  if (user.role !== "mentor" || user.mentor?.status !== "approved") redirect("/app");
+  if (user.role !== "mentor" || !user.mentor || user.mentor.status === "changes") redirect("/app");
   const m = user.mentor;
   return (
     <div className="flex max-w-160 flex-col gap-6 p-6 lg:p-7">

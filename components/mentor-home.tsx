@@ -1,5 +1,6 @@
 // The mentor dashboard, from AppMentor.dc.html. Every number comes from her requests and her wallet on Stellar.
 import { Suspense } from "react";
+import { RiTimeLine } from "@remixicon/react";
 import { AnswerButtons, DeliveryBox, TakingSwitch, WelcomeBanner, WithdrawBox } from "@/components/mentor-actions";
 import { CoinFan } from "@/components/coin-fan";
 import { Empty, PageGrid, Section } from "@/components/page-grid";
@@ -23,7 +24,7 @@ const link = "text-body-2-medium text-green underline outline-none focus-visible
 export function MentorHome({ user }: { user: User }) {
   return (
     <>
-      <TopBar title="Requests" before={<TakingSwitch on={user.mentor?.takingRequests ?? true} />} />
+      <TopBar title="Requests" before={user.mentor?.status === "approved" ? <TakingSwitch on={user.mentor.takingRequests} /> : undefined} />
       <Suspense fallback={<PageSpinner />}>
         <Content user={user} />
       </Suspense>
@@ -76,7 +77,16 @@ async function Content({ user }: { user: User }) {
     <PageGrid
       main={
         <>
-          {!mentor.welcomed && <WelcomeBanner name={first} courses={courseNames} />}
+          {mentor.status === "review" && (
+            <div role="status" className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-paper-line bg-mint px-5 py-4">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-purple text-dark-green"><RiTimeLine className="size-4" aria-hidden /></span>
+              <div className="flex min-w-0 grow basis-65 flex-col gap-0.5">
+                <span className="text-body-medium">Thanks, {first}. Your application is still under review.</span>
+                <span className="text-copy-sm text-ink-muted">The Juno team usually replies within two days. Requests start coming in once you&apos;re approved.</span>
+              </div>
+            </div>
+          )}
+          {mentor.status === "approved" && !mentor.welcomed && <WelcomeBanner name={first} courses={courseNames} />}
           <div className="grid grid-cols-[repeat(auto-fit,minmax(9.5rem,1fr))] gap-3.5">
             {tiles.map((tile) => (
               <div key={tile.label} className="flex flex-col gap-1 rounded-2xl border border-line px-5 py-4">
@@ -111,7 +121,9 @@ async function Content({ user }: { user: User }) {
               </div>
             ) : (
               <Empty>
-                {mentor.takingRequests
+                {mentor.status === "review"
+                  ? "Nothing here yet. Once you're approved, learners' agents can book you and requests show up here."
+                  : mentor.takingRequests
                   ? "No new requests right now. When a learner's agent books you, it shows up here and you're paid the moment you accept."
                   : "You're not taking requests. Turn “Taking requests” back on in the header when you're ready."}
               </Empty>

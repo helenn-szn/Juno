@@ -11,6 +11,13 @@ import { del, put } from "@vercel/blob";
 export const IMAGE_TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" } as const;
 export const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 
+export const RESUME_TYPES = {
+  "application/pdf": "pdf",
+  "application/msword": "doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+} as const;
+export const MAX_RESUME_BYTES = 4 * 1024 * 1024;
+
 const LOCAL_DIR = path.join(process.cwd(), "public", "uploads");
 const BLOB_HOST = /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\//;
 
@@ -37,4 +44,15 @@ export async function deleteImage(url: string | undefined) {
   } catch {
     // An old picture that can't be removed is not worth failing for.
   }
+}
+
+/** Keeps a mentor's resume (PDF or Word). Returns its link. */
+export async function saveResume(file: File) {
+  const name = `${crypto.randomUUID()}.${RESUME_TYPES[file.type as keyof typeof RESUME_TYPES]}`;
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    return (await put(`resumes/${name}`, file, { access: "public", contentType: file.type })).url;
+  }
+  await fs.mkdir(LOCAL_DIR, { recursive: true });
+  await fs.writeFile(path.join(LOCAL_DIR, name), Buffer.from(await file.arrayBuffer()));
+  return `/uploads/${name}`;
 }

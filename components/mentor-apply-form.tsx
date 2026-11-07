@@ -10,10 +10,10 @@ import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
 import { CoinFan } from "@/components/coin-fan";
 import { CountrySelect } from "@/components/country-select";
-import { PriceRows, tints } from "@/components/price-rows";
+import { PriceRows } from "@/components/price-rows";
 import { touchInput } from "@/components/touch-input";
 import { courses } from "@/lib/courses";
-import { FORMATS, FORMAT_KEYS, priceProblem, type Format } from "@/lib/mentors-shared";
+import { FORMAT_KEYS, priceProblem, type Format } from "@/lib/mentors-shared";
 import { cx } from "@/utils/cx";
 
 const showErrors = ({ validationErrors }: { validationErrors: string[] }) => validationErrors.join(" ");
@@ -32,6 +32,8 @@ export type ApplyInitial = {
   country: string;
   bio: string;
   link: string;
+  about?: string;
+  resumeName?: string;
   courses: string[];
   prices: Partial<Record<Format, number>>;
   note?: string;
@@ -50,19 +52,22 @@ export function MentorApplyForm({ initial = blank }: { initial?: ApplyInitial })
   const [picked, setPicked] = useState<string[]>(initial.courses);
   const [bio, setBio] = useState(initial.bio);
   const [link, setLink] = useState(initial.link);
+  const [about, setAbout] = useState(initial.about ?? "");
+  // Written feedback and voice notes start switched on; a returning mentor sees what she chose before.
+  const hadPrices = Object.keys(initial.prices).length > 0;
   const [offer, setOffer] = useState<Record<Format, boolean>>({
-    written: initial.signedIn ? initial.prices.written !== undefined : true,
-    voice: initial.signedIn ? initial.prices.voice !== undefined : true,
-    call: initial.signedIn ? initial.prices.call !== undefined : false,
+    written: hadPrices ? initial.prices.written !== undefined : true,
+    voice: hadPrices ? initial.prices.voice !== undefined : true,
+    call: hadPrices ? initial.prices.call !== undefined : false,
   });
   const [price, setPrice] = useState<Record<Format, string>>({
-    written: initial.prices.written?.toFixed(2) ?? FORMATS.written.start,
-    voice: initial.prices.voice?.toFixed(2) ?? FORMATS.voice.start,
-    call: initial.prices.call?.toFixed(2) ?? FORMATS.call.start,
+    written: initial.prices.written?.toFixed(2) ?? "",
+    voice: initial.prices.voice?.toFixed(2) ?? "",
+    call: initial.prices.call?.toFixed(2) ?? "",
   });
   const [promises, setPromises] = useState({ reply: false, teach: false });
 
-  const problems = Object.fromEntries(FORMAT_KEYS.map((f) => [f, offer[f] ? (priceProblem(f, price[f]) ?? state.errors?.[`price_${f}`]) : undefined]));
+  const problems = Object.fromEntries(FORMAT_KEYS.map((f) => [f, offer[f] ? (price[f].trim() ? priceProblem(f, price[f]) : undefined) ?? state.errors?.[`price_${f}`] : undefined]));
   const anyOffer = FORMAT_KEYS.some((f) => offer[f]);
   const done = [
     Boolean(country) && (initial.signedIn || Boolean(name.trim() && /^\S+@\S+\.\S+$/.test(email) && password.length >= 8)),
@@ -71,7 +76,6 @@ export function MentorApplyForm({ initial = blank }: { initial?: ApplyInitial })
     promises.reply && promises.teach,
   ];
   const current = done.indexOf(false);
-  const shown = names(picked);
 
   return (
     <div className="flex flex-wrap items-start justify-center gap-6 px-6 pt-8 pb-12">
@@ -172,6 +176,26 @@ export function MentorApplyForm({ initial = blank }: { initial?: ApplyInitial })
             <span id="bio-hint" className={cx("text-body-2-regular font-normal", state.errors?.bio ? "text-text-error-primary" : "text-text-secondary")}>{state.errors?.bio ?? "Learners see this on your profile."}</span>
           </label>
           <Input name="link" type="url" label="Link to your work" placeholder="https://" value={link} onChange={setLink} hint="Stallion, LinkedIn, GitHub or your own site." isInvalid={Boolean(state.errors?.link)} errorMessage={state.errors?.link} {...touchInput} />
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="resume" className="text-body-medium">Resume <span className="font-normal text-text-secondary">(optional)</span></label>
+            <input
+              id="resume"
+              name="resume"
+              type="file"
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              aria-invalid={state.errors?.resume ? true : undefined}
+              aria-describedby="resume-hint"
+              className="min-h-11 cursor-pointer text-copy-sm file:me-3 file:min-h-9 file:cursor-pointer file:rounded-full file:border-0 file:bg-green file:px-4 file:text-body-medium file:text-mint"
+            />
+            <span id="resume-hint" className={cx("text-body-2-regular", state.errors?.resume ? "text-text-error-primary" : "text-text-secondary")}>
+              {state.errors?.resume ?? (initial.resumeName ? `Saved: ${initial.resumeName}. Choose a file to replace it.` : "PDF or Word, up to 4 MB. Only the Juno team sees it.")}
+            </span>
+          </div>
+          <label className="flex flex-col gap-1.5 text-body-medium">
+            Tell the Juno team more about you <span className="-mt-1 text-body-2-regular font-normal text-text-secondary">(optional)</span>
+            <textarea name="about" rows={4} value={about} onChange={(event) => setAbout(event.target.value)} maxLength={1500} placeholder="Your experience, why you want to mentor, anything that helps us say yes." />
+            <span className="text-body-2-regular font-normal text-text-secondary">Only the Juno team sees this.</span>
+          </label>
         </section>
 
         <section id="prices" className={cx(card, "scroll-mt-6 border-2 border-green")}>
@@ -205,44 +229,8 @@ export function MentorApplyForm({ initial = blank }: { initial?: ApplyInitial })
         </section>
       </Form>
 
-      <aside className="flex w-full max-w-72 min-w-0 shrink grow basis-64 flex-col gap-4 max-[1100px]:max-w-190">
-        <div className={card}>
-          <h2 className="text-body-medium">After you submit</h2>
-          <ol className="m-0 flex list-none flex-col gap-3 p-0 text-copy-sm">
-            {[
-              ["bg-green", "Your status shows “Under review”."],
-              ["bg-green", "The Juno team checks your link and skills, usually within two days."],
-              ["bg-neon", "Approved: your dashboard opens and requests start coming in."],
-              ["border border-field-border", "Not yet: we'll tell you what to add, and you can apply again."],
-            ].map(([dot, text]) => (
-              <li key={text} className="flex gap-2.5"><span className={cx("mt-2 size-2 shrink-0 rounded-full", dot)} aria-hidden />{text}</li>
-            ))}
-          </ol>
-        </div>
-        <div role="img" aria-label="Preview of your mentor profile" className="on-dark flex flex-col gap-3 rounded-2xl bg-green p-5 text-mint">
-          <span className="text-body-regular text-text-tertiary">How learners see you</span>
-          <div className="flex items-center gap-3">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-purple text-title-3-medium text-dark-green">{(name.trim()[0] ?? "?").toUpperCase()}</span>
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="truncate text-body-medium">{name.trim() || "Your name"}</span>
-              <span className="text-body-2-regular text-text-secondary">{shown || "Pick your courses"}</span>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {FORMAT_KEYS.filter((f) => offer[f] && !priceProblem(f, price[f])).map((f) => (
-              <span key={f} className={cx("rounded-full px-2.5 py-1 text-body-2-medium text-dark-green", tints[f])}>{FORMATS[f].short} {Number(price[f].replace(",", ".")).toFixed(2)}</span>
-            ))}
-          </div>
-        </div>
-      </aside>
     </div>
   );
-}
-
-// "AI agents · Prompting · Stellar" style short names for the preview.
-function names(slugs: string[]) {
-  const short = (title: string) => title.replace(/^Build /, "").replace(/ for Beginners$/, "").replace(/ with AI$/, "").replace(/ and Stellar Basics$/, " · Stellar").replace(/ Engineering$/, "");
-  return courses.filter((c) => slugs.includes(c.slug)).map((c) => short(c.title)).join(" · ");
 }
 
 export function ApplyHeader() {

@@ -24,6 +24,8 @@ export type MentorProfile = {
   country: string;
   bio: string;
   link: string; // her work: Stallion, LinkedIn, GitHub or a site
+  resume?: { url: string; name: string }; // her uploaded resume
+  about?: string; // more about her, for the Juno team only
   courses: string[]; // course slugs she can review
   prices: Partial<Record<Format, number>>; // only the formats she offers
   status: "review" | "approved" | "changes"; // changes = "Not yet": reopen the form with the note

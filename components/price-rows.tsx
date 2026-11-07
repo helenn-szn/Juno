@@ -58,7 +58,7 @@ export function PriceRows({
                 )}
               >
                 {problem ??
-                  `Allowed: ${FORMATS[format].min.toFixed(2)} to ${FORMATS[format].max} USDC`}
+                  `Set your price: ${FORMATS[format].min.toFixed(2)} to ${FORMATS[format].max} USDC`}
               </span>
             </div>
             <label className="flex items-center gap-2 text-copy-sm">
@@ -69,6 +69,7 @@ export function PriceRows({
                 name={`price_${format}`}
                 type="text"
                 inputMode="decimal"
+                placeholder={`${FORMATS[format].min}–${FORMATS[format].max}`}
                 value={price[format]}
                 onChange={(event) =>
                   setPrice((p) => ({ ...p, [format]: event.target.value }))

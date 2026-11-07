@@ -18,7 +18,6 @@ import { fundPending } from "@/lib/sponsoring";
 import { ensureJunoId } from "@/lib/users";
 import { JunoId } from "@/components/juno-id";
 import { MentorHome } from "@/components/mentor-home";
-import { MentorUnderReview } from "@/components/mentor-under-review";
 import { currentUser } from "@/lib/session";
 
 // Accepting a request pays the mentor with x402, which can take a moment on Stellar.
@@ -40,7 +39,7 @@ async function Home() {
   if (user.role === "admin") redirect("/admin");
   if (user.role === "mentor") {
     if (!user.mentor || user.mentor.status === "changes") redirect("/mentors/apply");
-    return user.mentor.status === "approved" ? <MentorHome user={user} /> : <MentorUnderReview user={user} />;
+    return <MentorHome user={user} />;
   }
   return (
     <>
