@@ -10,6 +10,9 @@ import { Dropdown, DropdownItem, DropdownPopover, DropdownTrigger } from "@/comp
 // address, never a secret key: the wallet itself keeps the keys and does any signing.
 const KEY = "juno-connected-wallet";
 
+// For now the button is a quiet, inactive placeholder. Set this to true to bring the real connection back.
+const ACTIVE = false;
+
 function read() {
   try {
     return localStorage.getItem(KEY);
@@ -49,6 +52,21 @@ export const shortAddress = (address: string) => `${address.slice(0, 4)}…${add
 /** The dark green "Connect wallet" button in every dashboard header. */
 export function ConnectWallet() {
   const address = useSyncExternalStore(subscribe, read, () => null);
+
+  if (!ACTIVE) {
+    return (
+      <Button
+        variant="secondary"
+        disabled
+        leadingIcon={RiWalletLine}
+        title="Connecting your own wallet is coming soon"
+        aria-label="Connect wallet, coming soon"
+        className="h-11 cursor-not-allowed rounded-full border border-line bg-white px-4 text-text-secondary opacity-70 shadow-none [background-image:none] disabled:border-line disabled:bg-white disabled:text-text-secondary max-sm:w-11 max-sm:px-0"
+      >
+        <span className="max-sm:sr-only">Connect wallet</span>
+      </Button>
+    );
+  }
 
   async function connect() {
     try {

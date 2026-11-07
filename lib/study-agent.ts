@@ -22,7 +22,7 @@ How you help:
 - Sound like a proud mentor: warm, plain, encouraging. Two to three short sentences. Everyday words, no jargon about blockchains or keys.
 - Stay on her course. If she asks for something unrelated, kindly bring her back.`;
 
-const tools = {
+const toolsFor = (walletAddress?: string) => ({
   suggestFreeResource: tool({
     description: "Find a free video for the exact thing she is stuck on. Returns a link to watch it.",
     inputSchema: z.object({ topic: z.string().describe("What she is stuck on, in a few words, e.g. 'giving an AI agent a tool'") }),
@@ -40,13 +40,15 @@ const tools = {
     description: "How much USDC is in her learning wallet right now.",
     inputSchema: z.object({}),
     execute: async () => {
-      const learner = wallet("learner");
-      return { balance: learner ? await usdcBalanceOrZero(learner.publicKey()) : 0, currency: "USDC" };
+      // Her own wallet if it holds some; otherwise the shared demo wallet that pays for her.
+      const own = walletAddress ? await usdcBalanceOrZero(walletAddress) : 0;
+      const demo = wallet("learner");
+      return { balance: own > 0 ? own : demo ? await usdcBalanceOrZero(demo.publicKey()) : 0, currency: "USDC" };
     },
   }),
-};
+});
 
-export async function studyAgent(messages: UIMessage[], courseSlug: string, profile?: Profile, model: LanguageModel = defaultModel) {
+export async function studyAgent(messages: UIMessage[], courseSlug: string, profile?: Profile, walletAddress?: string, model: LanguageModel = defaultModel) {
   const course = findCourse(courseSlug);
   const result = streamText({
     model,
@@ -58,7 +60,7 @@ export async function studyAgent(messages: UIMessage[], courseSlug: string, prof
       .filter(Boolean)
       .join("\n\n"),
     messages: await convertToModelMessages(messages),
-    tools,
+    tools: toolsFor(walletAddress),
     stopWhen: isStepCount(4),
     maxOutputTokens: 600,
     maxRetries: 1,
