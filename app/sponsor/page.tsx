@@ -7,6 +7,7 @@ import { RiAddLine, RiArrowRightUpLine, RiMailLine } from "@remixicon/react";
 import { ButtonLink } from "@/components/base/buttons/button";
 import { CoinFan } from "@/components/coin-fan";
 import { CopyInvite } from "@/components/copy-invite";
+import { FundByIdForm } from "@/components/fund-by-id";
 import { Empty, PageGrid, Section } from "@/components/page-grid";
 import { PageSpinner } from "@/components/page-spinner";
 import { ProgressLine } from "@/components/progress";
@@ -182,6 +183,8 @@ async function Content() {
               </a>
             )}
           </div>
+
+          <FundByIdForm />
 
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-line p-5">
             <CoinFan theme="light" earned={Math.min(s.coins, 5)} label={`${Math.min(s.coins, 5)} of 5 skill coins`} className="w-44" />

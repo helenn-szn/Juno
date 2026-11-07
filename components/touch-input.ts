@@ -1,3 +1,3 @@
-// BoardUI inputs are 36px tall. Spread these onto an Input to make the whole
-// field a 44px tap target: the input itself fills the height, not just its padding.
-export const touchInput = { fieldClassName: "px-2 py-0", inputClassName: "h-11" };
+// Every field is at least 44px tall already (see components/base/input/input.tsx).
+// These stay so existing fields keep reading the same: spread them onto an Input.
+export const touchInput = { fieldClassName: "", inputClassName: "h-11" };

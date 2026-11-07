@@ -7,7 +7,9 @@ import { AvatarUpload } from "@/components/avatar-upload";
 import { Button } from "@/components/base/buttons/button";
 import { PageSpinner } from "@/components/page-spinner";
 import { TopBar } from "@/components/top-bar";
+import { JunoId } from "@/components/juno-id";
 import { currentUser } from "@/lib/session";
+import { ensureJunoId } from "@/lib/users";
 
 export const metadata: Metadata = { title: "Settings · juno" };
 
@@ -25,6 +27,7 @@ export default function Settings() {
 async function Account() {
   const user = await currentUser();
   if (!user) redirect("/login");
+  const junoId = await ensureJunoId(user);
 
   return (
     <div className="flex max-w-120 flex-col gap-6 p-6 lg:p-7">
@@ -38,6 +41,7 @@ async function Account() {
           <dt className="text-body-2-regular text-text-tertiary">Email</dt>
           <dd className="text-copy-sm break-all">{user.email}</dd>
         </div>
+        {user.role !== "sponsor" && junoId && <JunoId id={junoId} className="px-5 py-3" />}
       </dl>
       <Link
         href="/app/onboarding"

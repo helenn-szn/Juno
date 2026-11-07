@@ -108,7 +108,6 @@ export function OnboardingForm({ next, initial }: { next?: string; initial?: Pro
             maxLength={120}
             autoComplete="off"
             {...touchInput}
-            fieldClassName="rounded-full border border-line px-3.5 py-0"
           />
         </fieldset>
       )}

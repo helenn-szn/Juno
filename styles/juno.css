@@ -20,6 +20,9 @@
   --color-footer: #12282a;     /* the landing footer, a shade under dark-green */
   --color-paper-line: #cfddd7; /* hairline on the white mini certificate */
   --color-ink-muted: #4a615e;  /* muted text on mint and white cards */
+  --color-field-border: #a9c4bf;      /* every form field: border, */
+  --color-field-placeholder: #6b807c; /* placeholder, */
+  --color-field-error: #b3261e;       /* and error colour. Focus uses green. */
 
   /* Coin shading for the logo */
   --color-coin-side: #9bc748;
@@ -141,6 +144,39 @@
 
 .dark .bg-button-primary {
   --color-text-white: var(--color-dark-green);
+}
+
+/* Form fields look the same everywhere: white, dark 16px text, a visible border, a green
+ * focus outline, a red error border. The browser's dark mode must never darken them. */
+input,
+select,
+textarea {
+  color-scheme: light;
+}
+select,
+textarea {
+  min-height: 2.75rem;
+  border: 1px solid var(--color-field-border);
+  border-radius: 0.75rem;
+  background-color: #fff;
+  padding: 0 0.875rem;
+  color: var(--color-dark-green);
+  font-size: 1rem;
+}
+textarea {
+  padding-block: 0.625rem;
+}
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-green);
+  outline-offset: 0;
+}
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--color-field-error);
+}
+::placeholder {
+  color: var(--color-field-placeholder);
 }
 
 /* Smooth scrolling for the landing nav links. Sections stop a little below the

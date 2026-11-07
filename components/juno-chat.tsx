@@ -304,7 +304,6 @@ export function JunoChat({ hasProfile }: { hasProfile: boolean }) {
             ref={input}
             className="flex-1"
             {...touchInput}
-            fieldClassName="rounded-full bg-dark-green px-3.5 py-0 border border-separator-border"
           />
           <Button
             type="submit"

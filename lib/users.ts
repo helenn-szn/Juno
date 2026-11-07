@@ -22,6 +22,7 @@ export type User = {
   startedCourses: string[];
   profile?: Profile; // her answers before the first course: experience, goal and schedule
   avatar?: string; // link to her profile picture
+  junoId?: string; // her short, shareable ID, like JN-7K2Q9 (learners only)
   modulesDone?: Record<string, number>; // finished modules per course slug
   lessonsDone?: Record<string, number[]>; // finished lessons of her current module, per course slug
   wallet?: { publicKey: string; secret: string };
@@ -59,6 +60,34 @@ export async function findUserByEmail(email: string) {
   return (await readFile()).find((user) => user.email === address);
 }
 
+// Juno IDs: "JN-" and 5 characters, with nothing that looks like another (no 0/O, 1/I/L).
+export const JUNO_ID_CHARS = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+export const JUNO_ID_PATTERN = /^JN-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{5}$/;
+
+const newJunoId = () => "JN-" + Array.from(crypto.randomBytes(5), (byte) => JUNO_ID_CHARS[byte % JUNO_ID_CHARS.length]).join("");
+
+export async function findUserByJunoId(junoId: string) {
+  if (!JUNO_ID_PATTERN.test(junoId)) return undefined;
+  if (redis) {
+    const id = await redis.get<string>(`junoid:${junoId}`);
+    return id ? findUserById(id) : undefined;
+  }
+  return (await readFile()).find((user) => user.junoId === junoId);
+}
+
+// Picks an ID nobody has yet and keeps it for this learner. Accounts made before IDs existed get theirs the first time it's needed.
+export async function ensureJunoId(user: User) {
+  if (user.junoId || user.role === "sponsor") return user.junoId;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const junoId = newJunoId();
+    if (redis) {
+      if (!(await redis.set(`junoid:${junoId}`, user.id, { nx: true }))) continue;
+    } else if (await findUserByJunoId(junoId)) continue;
+    await updateUser(user.id, (u) => ({ ...u, junoId }));
+    return junoId;
+  }
+}
+
 export async function createUser(name: string, email: string, password: string, role: "learner" | "sponsor" = "learner"): Promise<User> {
   const user: User = {
     id: crypto.randomUUID(),
@@ -76,7 +105,9 @@ export async function createUser(name: string, email: string, password: string, 
   } else {
     await writeFile([...(await readFile()), user]);
   }
-  return user;
+  // Every learner gets her Juno ID at sign-up.
+  const junoId = await ensureJunoId(user);
+  return junoId ? { ...user, junoId } : user;
 }
 
 export async function updateUser(id: string, change: (user: User) => User) {

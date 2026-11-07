@@ -132,23 +132,24 @@ export interface InputBaseProps extends Omit<AriaInputProps, "size" | "className
 }
 
 const inputStyles = sortCx({
+  // Juno's form-field rule: white, a visible border, 12px corners, at least 44px tall.
   field: [
-    "relative flex w-full items-center",
-    "rounded-2lg",
-    "bg-background-tertiary-default text-foreground-icon-tertiary",
-    "ring-2 ring-inset ring-transparent",
-    "transition-[background-color,box-shadow,color] duration-[var(--input-transition-ms)] ease",
+    "relative flex min-h-11 w-full items-center",
+    "rounded-xl border border-field-border",
+    "bg-white text-dark-green",
+    "outline-2 -outline-offset-1 outline-transparent",
+    "transition-[border-color,outline-color] duration-[var(--input-transition-ms)] ease",
   ].join(" "),
 
   fieldSize: {
-    medium: "p-2",                // 8px all sides → h auto = 36
-    small:  "h-8 px-1.5 py-2",    // 32 / 6 / 8
+    medium: "px-3.5 py-0",
+    small:  "h-8 px-2.5 py-0",
   },
 
   // When a leadingAddon is present (Phone basic): tighten left padding.
   fieldWithAddonSize: {
-    medium: "h-9 ps-1 pe-2 py-2", // 36 / 4 / 8 / 8
-    small:  "h-8 ps-1 pe-1.5 py-2",
+    medium: "ps-2 pe-3.5 py-0",
+    small:  "h-8 ps-1 pe-2 py-0",
   },
 
   content: "flex w-full items-center gap-2 min-w-0",
@@ -156,12 +157,10 @@ const inputStyles = sortCx({
 
   input: [
     "min-w-0 flex-1 bg-transparent border-0 outline-none p-0 m-0",
-    "font-sans text-body-regular text-text-primary",
-    "placeholder:text-text-tertiary",
-    "focus:placeholder:text-text-primary",
+    "h-11 font-sans text-copy text-dark-green",
+    "placeholder:text-field-placeholder",
     "disabled:text-input-disabled-text disabled:placeholder:text-input-disabled-text",
     "disabled:cursor-not-allowed",
-    "aria-invalid:placeholder:text-text-error-placeholder",
   ].join(" "),
 
   icon: "size-5 shrink-0",
@@ -187,14 +186,14 @@ export function inputFieldClassName(
   return cx(
     inputStyles.field,
     hasAddon ? inputStyles.fieldWithAddonSize[size] : inputStyles.fieldSize[size],
-    // Hover: idle, no focus, no disabled, no invalid
-    isHovered && !isFocusWithin && !isDisabled && !isInvalid && "ring-border-button-hover",
-    // Focus wins over hover
-    isFocusWithin && !isDisabled && !isInvalid && "ring-border-button-active",
+    // Hover: a little darker border
+    isHovered && !isFocusWithin && !isDisabled && !isInvalid && "border-dark-green/50",
+    // Focus: a 2px green outline
+    isFocusWithin && !isDisabled && !isInvalid && "border-green outline-green",
     // Disabled
     isDisabled && "bg-input-disabled-background text-input-disabled-foreground",
-    // Invalid
-    isInvalid && "bg-background-tertiary-error text-foreground-icon-error",
+    // Invalid: a red border, with the message under the field
+    isInvalid && "border-field-error outline-field-error",
   );
 }
 

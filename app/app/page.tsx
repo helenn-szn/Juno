@@ -15,6 +15,8 @@ import { WalletBalance } from "@/components/wallet-balance";
 import { courses } from "@/lib/courses";
 import { fitScore } from "@/lib/profile";
 import { fundPending } from "@/lib/sponsoring";
+import { ensureJunoId } from "@/lib/users";
+import { JunoId } from "@/components/juno-id";
 import { currentUser } from "@/lib/session";
 
 export default function Dashboard() {
@@ -35,6 +37,7 @@ async function Content() {
   // If a sponsor's budget could not be sent earlier, try again now.
   after(() => fundPending(user.id).catch(() => {}));
 
+  const junoId = await ensureJunoId(user);
   const doneOf = (slug: string) => user.modulesDone?.[slug] ?? 0;
   const started = courses.filter((course) => user.startedCourses.includes(course.slug));
   const inProgress = started.filter((course) => doneOf(course.slug) < course.modules.length);
@@ -86,6 +89,7 @@ async function Content() {
                 <WalletBalance address={user.wallet?.publicKey} className="text-display-4-medium tracking-[-0.03em] text-radiant" />
               </Suspense>
             </div>
+            {junoId && <JunoId id={junoId} />}
             <ButtonLink href="/app/wallet" leadingIcon={RiAddLine} className="h-11 rounded-full shadow-none">
               Fund wallet
             </ButtonLink>
