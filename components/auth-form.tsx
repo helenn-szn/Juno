@@ -28,8 +28,9 @@ const modes = {
 
 const showErrors = ({ validationErrors }: { validationErrors: string[] }) => validationErrors.join(" ");
 
-export function AuthForm({ mode }: { mode: keyof typeof modes }) {
-  const m = modes[mode];
+export function AuthForm({ mode, role = "learner" }: { mode: keyof typeof modes; role?: "learner" | "sponsor" }) {
+  const sponsor = role === "sponsor" && mode === "signup";
+  const m = sponsor ? { ...modes.signup, title: "Create your sponsor account" } : modes[mode];
   const [state, action, pending] = useActionState<FormState, FormData>(m.action, {});
 
   return (
@@ -42,10 +43,11 @@ export function AuthForm({ mode }: { mode: keyof typeof modes }) {
       <div className="my-auto flex flex-col gap-6">
         <h1 className="text-title-1-medium">{m.title}</h1>
         <Form action={action} validationBehavior="aria" validationErrors={state.errors} className="flex flex-col gap-4">
+          {sponsor && <input type="hidden" name="role" value="sponsor" />}
           {mode === "signup" && (
             <Input
               name="name"
-              label="Name"
+              label={sponsor ? "Name or organisation" : "Name"}
               autoComplete="name"
               isRequired
               defaultValue={state.values?.name}

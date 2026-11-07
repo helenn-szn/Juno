@@ -29,6 +29,7 @@ export default function Dashboard() {
 async function Content() {
   const user = await currentUser();
   if (!user) redirect("/login");
+  if (user.role === "sponsor") redirect("/sponsor");
 
   const doneOf = (slug: string) => user.modulesDone?.[slug] ?? 0;
   const started = courses.filter((course) => user.startedCourses.includes(course.slug));

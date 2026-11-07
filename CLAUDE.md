@@ -43,13 +43,13 @@ In:
 
 Stretch: resume filled from a Juno-provided template.
 
-Out (fake or skip): mentor and sponsor logins (use a demo role switcher for them), real mentor matching (one demo mentor), full content for every course (only Build AI Agents is complete), mobile app, personal website builder.
+Out (fake or skip): mentor logins (use a demo switcher for the mentor), real mentor matching (one demo mentor), full content for every course (only Build AI Agents is complete), mobile app, personal website builder.
 
 ## Tech plan
 
 - Next.js (App Router) + TypeScript + Tailwind v4, deployed on Vercel
 - UI components: **BoardUI** (React + Tailwind v4 + React Aria, source copied into the repo). Add components with `npx boardui add <component>` or through the BoardUI MCP server. Check BoardUI's docs for exact component names. Use BoardUI for buttons, inputs, cards, chat, tabs and charts before writing custom ones, and restyle them with our brand tokens. Don't add a second component library
-- Routes: `/` landing page (built from `Landing.dc.html`), `/app` the app, `/verify/[id]` certificate check
+- Routes: `/` landing page (built from `Landing.dc.html`), `/sponsors` for sponsors page, `/app` the app, `/verify/[id]` certificate check
 - Stellar **testnet** only. Use `@stellar/stellar-sdk` and Horizon testnet
 - x402 on Stellar: follow the official docs at https://developers.stellar.org/docs/build/agentic-payments/x402. We run the official `@x402/stellar` facilitator inside the app, and the juno wallet pays the network fees (the hosted Coinbase facilitator timed out and still charged the learner). Do not write verification/settlement code ourselves
 - The mentor review is an API route protected by x402 (returns 402 with a price, accepts payment proof)
@@ -79,7 +79,7 @@ Every on-chain action shows a loading state, then a success chip with an explore
 
 Design for a 390px-wide phone first, then scale up. On phones: a bottom tab bar per role. On desktop: the same screens in a centred column (max-width ~480px for learner/mentor, wider for the sponsor dashboard). Every tap target at least 44px. No horizontal scrolling.
 
-App shell: header with the juno logo. Learners sign in; mentors and sponsors use a demo role switcher for now.
+App shell: header with the juno logo. Learners and sponsors sign in; the mentor uses a demo switcher for now.
 
 Routes: `/` landing, `/signup`, `/login`, `/app` dashboard, `/app/courses` all courses, `/app/courses/[slug]` details, `/app/courses/[slug]/learn`, `/app/learning` my learning. Planned: `/app/certificates`, `/app/wallet`, `/app/settings`, `/mentor`, `/sponsor`, public `/verify/[id]`.
 
@@ -105,6 +105,18 @@ Courses: **tech and AI only**, stored in a typed local file. Start with these si
 | Blockchain and Stellar Basics | Beginner | 5 |
 
 Build AI Agents modules: What is an AI agent, Prompts and tools, Giving agents memory, Agents that pay (x402), Build your first agent, Testing and safety, Capstone: ship an agent. The other courses can have short placeholder lessons.
+
+**Sponsor flow (build after the learner flow):** Landing page → "Sponsor a woman" → **For sponsors page** (`/sponsors`, built from `Sponsors.dc.html`) → "Start sponsoring" → Create account → Fund wallet → Who to sponsor? → Set budget → Sponsor dashboard. Returning sponsors: Landing page → Log in → Dashboard. "Top up" on the dashboard leads back to Fund wallet.
+
+- **For sponsors page**: public, same dark style as the landing page. Hero with an example sponsor dashboard, "How sponsoring works" (4 steps), "Two ways to sponsor", "Your money, protected", a short FAQ (native `<details>`), and a closing "Start sponsoring" / "Log in". Every "Sponsor a woman" link on the landing page goes here
+- **Create account**: name (or organisation name), email and password. Their Stellar testnet wallet is created automatically in the background
+- **Fund wallet**: add testnet USDC (sponsor demo funding or Stellar's testnet faucet); show the balance with an explorer link
+- **Who to sponsor?** Two options, both in the MVP:
+  - **Invite a learner**: by email or a shareable invite link. When she signs up through it, she's linked to this sponsor
+  - **Fund a course**: open seats on a chosen course, for any learner who enrols (first come, first served)
+- **Set budget**: one rule only, a **total amount per learner** (e.g. 20 USDC). That amount moves from the sponsor's wallet into the learner's learning wallet when she joins. Learning wallets can only pay for learning services (mentor reviews, tests) via the study agent
+- **Leftover money stays with the learner** for her next course; it is not returned to the sponsor
+- **Sponsor dashboard**: balance, learners sponsored (with their progress), total given, what each payment bought, skill coins and certificates earned, and an explorer link on every row. "Top up" and "Sponsor someone new" buttons
 
 Later in the learner flow (after the above works):
 - **Course in progress**: chat with the study agent. Suggests free resources first. Paid help appears as a card with the price and "Book review" / "Not now". After paying: a neon "Done! Mentor paid" chip with an explorer link
@@ -174,6 +186,7 @@ Voice: the proud mentor. Warm, plain, celebrating.
 ## Code map
 
 - `app/page.tsx`: the landing page, built from `Landing.dc.html` (copy as written). `components/landing-header.tsx` is its header with the phone menu; `components/landing-motion.tsx` the scroll reveal
+- `app/sponsors` (public For sponsors page, from `Sponsors.dc.html`) and `app/sponsor` (a sponsor's home, a stub until fund / who to sponsor / budget are built). "Start sponsoring" goes to `/signup?as=sponsor`, which creates a user with `role: "sponsor"`; `proxy.ts` guards `/sponsor` and sponsors are sent there from `/app`
 - `app/signup`, `app/login`, `app/actions.ts`: Create account, Log in, Log out, Start course (server actions). Signing up opens her testnet wallet in the background (`setUpWallet`)
 - `app/app/layout.tsx`: the app frame (sidebar on desktop, tab bar on phones, Juno.ai in the corner). Screens: `page.tsx` Dashboard, `courses/` all courses with `?q=` search, `courses/[slug]` Course details, `courses/[slug]/learn` (where the study agent lands next), `learning/`, `certificates/`, `wallet/`, `settings/`
 - `components/`: `top-bar` (title, search, account menu), `app-nav` (sidebar + tab bar), `course-card`, `continue-card`, `lesson-list`, `module-list`, `progress` (bar and ring), `coin-fan` (the logo, and her coins), `juno-chat` (the floating Juno.ai). `components/base/` is BoardUI
