@@ -3,10 +3,8 @@ import type { Metadata } from "next";
 import { ButtonLink } from "@/components/base/buttons/button";
 import { CoinFan } from "@/components/coin-fan";
 import { LandingHeader } from "@/components/landing-header";
-import { CourseCoverImage } from "@/components/course-cover";
 import { CountUp } from "@/components/count-up";
 import { LandingMotion } from "@/components/landing-motion";
-import { courses, moduleCount, type CourseCover } from "@/lib/courses";
 import { cx } from "@/utils/cx";
 
 export const metadata: Metadata = {
@@ -89,14 +87,6 @@ const audiences = [
   },
 ];
 
-// The landing page colours its course covers in this order.
-const coverOrder: CourseCover[] = ["purple", "radiant", "neon", "mint", "purple", "radiant"];
-const checks = [
-  { dot: "bg-green", text: "Reviewed by a mentor" },
-  { dot: "bg-purple", text: "Recorded on Stellar" },
-  { dot: "bg-neon", text: "Verified with one scan" },
-];
-
 const skills = ["AI agents", "Prompting", "x402"];
 const jobs = ["Support bot for a shop", "Prompt library for a startup"];
 
@@ -105,7 +95,7 @@ const footerLinks = [
     title: "Explore",
     links: [
       { href: "#how", label: "How it works" },
-      { href: "#courses", label: "Courses" },
+      { href: SPONSORS, label: "Sponsors" },
       { href: "#who", label: "Who it's for" },
       { href: "#work", label: "Skills to work" },
     ],
@@ -219,82 +209,6 @@ export default function Landing() {
               </li>
             ))}
           </ol>
-        </section>
-
-        <section id="courses" className="mx-auto flex max-w-312 flex-col gap-9 px-6 pb-22">
-          <div data-reveal className="flex flex-wrap items-end justify-between gap-x-12 gap-y-4">
-            <div className="flex min-w-0 grow basis-105 flex-col gap-3">
-              <span className={eyebrow}>Courses</span>
-              <h2 className="text-section">Tech and AI skills, with a certificate at the end.</h2>
-            </div>
-            <ButtonLink href={APP} variant="secondary" className={cx(pill, "h-12 px-5.5 text-cta", outline)}>
-              See all courses
-            </ButtonLink>
-          </div>
-          <ul className={grid("grid-cols-[repeat(auto-fill,minmax(220px,1fr))]")}>
-            {courses.map((course, index) => (
-              <li key={course.slug} data-reveal>
-                <a href={APP} className="lift flex h-full flex-col overflow-hidden rounded-2xl bg-green outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-                  <div className="relative">
-                    <CourseCoverImage icon={course.icon} cover={coverOrder[index]} className="h-30 [&>svg]:size-14" />
-                    {course.isNew && (
-                      <span className="absolute start-3 top-3 rounded-full bg-radiant px-2.5 py-1 text-caption-1-medium text-dark-green">New</span>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-1.5 p-4">
-                    <span className="text-headline-medium">{course.title}</span>
-                    <span className="text-body-2-regular text-text-secondary">
-                      {course.level} · {moduleCount(course)}
-                    </span>
-                  </div>
-                </a>
-              </li>
-            ))}
-          </ul>
-
-          <div data-reveal className="flex flex-wrap items-center gap-x-12 gap-y-8 rounded-3xl bg-mint p-8 text-dark-green">
-            <div className="flex min-w-0 grow basis-80 flex-col gap-3.5">
-              <span className="text-body-medium text-green">After every course</span>
-              <h3 className="text-[clamp(1.625rem,3vw,2.25rem)] leading-[1.1] font-medium tracking-[-0.035em]">
-                Finish a course. Get a certificate anyone can check.
-              </h3>
-              <ul className="flex flex-col gap-2.5 text-copy">
-                {checks.map((check) => (
-                  <li key={check.text} className="flex items-center gap-2.5">
-                    <span className={cx("size-2.5 shrink-0 rounded-full", check.dot)} aria-hidden />
-                    {check.text}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div
-              role="img"
-              aria-label="Example Juno certificate"
-              className="flex aspect-[1123/794] min-w-0 max-w-130 grow basis-95 overflow-hidden rounded-[14px] border border-paper-line bg-white"
-            >
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5 px-[6%] py-[7%]">
-                <div className="flex items-center gap-1">
-                  <CoinFan theme="light" surface="stroke-white" className="h-4 w-6" />
-                  <span className="text-caption-1-medium tracking-[-0.05em] text-green">juno</span>
-                </div>
-                <span className="mt-auto text-[9px] tracking-[0.24em] text-green">CERTIFICATE OF COMPLETION</span>
-                <span className="text-[clamp(1.125rem,2.4vw,1.625rem)] font-medium tracking-[-0.04em]">Ada</span>
-                <span className="self-start rounded-md bg-radiant px-2 py-0.5 text-body-2-medium text-green">Build AI Agents</span>
-                <div className="mt-auto flex gap-4" aria-hidden>
-                  <span className="h-4 w-16 border-b border-dark-green" />
-                  <span className="h-4 w-16 border-b border-dark-green" />
-                </div>
-              </div>
-              <div className="on-dark flex w-[30%] flex-col items-center justify-center gap-2.5 bg-green p-3" aria-hidden>
-                <CoinFan surface="stroke-green" className="w-4/5" />
-                <svg viewBox="0 0 21 21" shapeRendering="crispEdges" className="w-[46%] rounded bg-white p-1">
-                  <path className="fill-dark-green" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0z" />
-                  <path className="fill-white" d="M1 1h5v5H1zM15 1h5v5h-5zM1 15h5v5H1z" />
-                  <path className="fill-dark-green" d="M2 2h3v3H2zM16 2h3v3h-3zM2 16h3v3H2zM8 1h2v2H8zM10 4h2v2h-2zM8 8h3v1H8zM12 10h2v2h-2zM15 9h3v1h-3zM9 12h1v3H9zM14 15h2v2h-2zM17 13h2v1h-2zM11 17h2v2h-2zM18 18h2v2h-2z" />
-                </svg>
-              </div>
-            </div>
-          </div>
         </section>
 
         <section id="who" className="bg-green">

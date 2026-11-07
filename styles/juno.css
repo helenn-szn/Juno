@@ -149,7 +149,7 @@ html {
   scroll-behavior: smooth;
 }
 section {
-  scroll-margin-top: 24px;
+  scroll-margin-top: 88px; /* clears the landing header, which stays on screen */
 }
 @media (prefers-reduced-motion: reduce) {
   html {

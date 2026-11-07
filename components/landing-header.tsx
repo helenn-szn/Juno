@@ -8,7 +8,7 @@ import { cx } from "@/utils/cx";
 
 const links = [
   { href: "#how", label: "How it works" },
-  { href: "#courses", label: "Courses" },
+  { href: "/sponsors", label: "Sponsors" },
   { href: "#who", label: "Who it's for" },
   { href: "#work", label: "Skills to work" },
 ];
@@ -17,7 +17,15 @@ const links = [
 // a menu button that opens a full-width menu under the header.
 export function LandingHeader({ appHref }: { appHref: string }) {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
+
+  // The bar stays at the top while she scrolls, and gets a solid background once she has.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -31,7 +39,13 @@ export function LandingHeader({ appHref }: { appHref: string }) {
   }, [open]);
 
   return (
-    <header className="mx-auto flex max-w-312 flex-wrap items-center justify-between gap-4 px-6 py-5">
+    <header
+      className={cx(
+        "sticky top-0 z-40 border-b transition-[background-color,border-color,backdrop-filter] duration-300",
+        scrolled || open ? "border-line bg-dark-green/90 backdrop-blur-md" : "border-transparent",
+      )}
+    >
+      <div className="mx-auto flex max-w-312 flex-wrap items-center justify-between gap-4 px-6 py-3">
       <a href="#top" className="flex min-h-11 items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
         <CoinFan className="h-8 w-11.5" />
         <span className="text-wordmark text-text-accent">juno</span>
@@ -72,6 +86,7 @@ export function LandingHeader({ appHref }: { appHref: string }) {
           </ButtonLink>
         </nav>
       )}
+      </div>
     </header>
   );
 }

@@ -149,6 +149,8 @@ Landing page scroll animation, kept subtle:
 
 - Nav links (header, mobile menu, footer) scroll smoothly to their section: `scroll-behavior: smooth` on `html`, plus `scroll-margin-top` on sections so headings aren't hidden. Off under `prefers-reduced-motion`
 
+The landing page header stays at the top while she scrolls and gets a solid dark background once she has. Its links are How it works, Sponsors (the `/sponsors` page), Who it's for and Skills to work.
+
 Landing page header on phones (under 760px): the links collapse into a three-line menu button (44px+ tap target, `aria-expanded`, `aria-controls`). Tapping it opens a full-width menu under the header with the three links and a full-width "Get started" button; the icon turns into an X. Tapping a link scrolls to its section and closes the menu. Escape also closes it.
 
 ## Brand
