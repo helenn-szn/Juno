@@ -5,10 +5,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { issueCertificate, recordOnStellar } from "@/lib/certificates";
+import type { TopUpResult } from "@/app/sponsor/actions";
 import { findCourse, requiredLessons } from "@/lib/courses";
 import { profileSchema } from "@/lib/profile";
 import { claimSeat, findInvite, fundPending, linkInvite } from "@/lib/sponsoring";
 import { currentUser, endSession, startSession } from "@/lib/session";
+import { buyUsdc } from "@/lib/stellar";
+import { Keypair } from "@stellar/stellar-sdk";
 import { checkPassword, createUser, findUserByEmail, setUpWallet, updateUser } from "@/lib/users";
 
 export type FormState = { errors?: Record<string, string>; values?: Record<string, string> };
@@ -131,4 +134,23 @@ export async function saveProfile(next: string | undefined, _: FormState, form: 
   revalidatePath("/app", "layout");
   if (next && findCourse(next)) await startCourse(next); // redirects into the course
   redirect("/app");
+}
+
+// She adds test USDC to her own learning wallet: some of its free test XLM is swapped for USDC
+// on Stellar's built-in exchange. A sponsor can fund her too; this is for when she wants to herself.
+export async function fundMyWallet(amount: number): Promise<TopUpResult> {
+  const user = await currentUser();
+  if (!user) redirect("/login");
+  if (!user.wallet) return { ok: false, reason: "no-wallet" };
+  if (![10, 20, 50].includes(amount)) return { ok: false, reason: "failed" };
+  try {
+    const tx = await buyUsdc(Keypair.fromSecret(user.wallet.secret), amount);
+    revalidatePath("/app", "layout");
+    return { ok: true, tx };
+  } catch (error) {
+    console.error("Funding her own wallet failed:", error);
+    // A brand-new wallet takes a little while to open on the network.
+    const missing = (error as { response?: { status?: number } })?.response?.status === 404;
+    return { ok: false, reason: missing ? "no-wallet" : error instanceof Error && error.message === "no-liquidity" ? "no-liquidity" : "failed" };
+  }
 }

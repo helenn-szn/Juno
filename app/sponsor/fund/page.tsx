@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { RiArrowRightUpLine } from "@remixicon/react";
 import { PageSpinner } from "@/components/page-spinner";
 import { TopBar } from "@/components/top-bar";
+import { topUp } from "@/app/sponsor/actions";
 import { TopUp } from "@/components/sponsor-forms";
 import { WalletBalance } from "@/components/wallet-balance";
 import { explorer } from "@/lib/constants";
@@ -42,7 +43,7 @@ async function Wallet() {
           <section aria-labelledby="add" className="flex flex-col gap-3">
             <h2 id="add" className="text-title-3-medium">Add test USDC</h2>
             <p className="text-body-regular text-text-secondary">On the test network this is free play money: we swap some of your wallet&apos;s free test XLM for USDC.</p>
-            <TopUp />
+            <TopUp action={topUp} amounts={[20, 50, 100]} />
           </section>
           <a href={explorer.account(address)} target="_blank" rel="noreferrer" className="flex min-h-11 items-center gap-1 self-start text-body-medium text-coin-newest-side underline">
             See your wallet on Stellar

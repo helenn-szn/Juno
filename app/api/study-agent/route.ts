@@ -18,5 +18,5 @@ export async function POST(request: Request) {
   if (!Array.isArray(body?.messages) || body.messages.length === 0 || !findCourse(body.course)) {
     return NextResponse.json({ error: "bad-request" }, { status: 400 });
   }
-  return studyAgent(body.messages.slice(-20), body.course, user.profile);
+  return studyAgent(body.messages.slice(-20), body.course, user.profile, user.wallet?.publicKey);
 }

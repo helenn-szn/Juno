@@ -3,7 +3,7 @@
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { RiArrowRightUpLine } from "@remixicon/react";
-import { fundSeats, inviteLearner, topUp, type SponsorFormState, type TopUpResult } from "@/app/sponsor/actions";
+import { fundSeats, inviteLearner, type SponsorFormState, type TopUpResult } from "@/app/sponsor/actions";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
 import { CopyLink } from "@/components/copy-link";
@@ -90,8 +90,8 @@ const problems = {
   failed: "That didn't go through. Try again?",
 };
 
-/** Adds testnet USDC to the sponsor's wallet. It can take a few seconds. */
-export function TopUp() {
+/** Adds testnet USDC to a wallet (a sponsor's or a learner's). It can take a few seconds. */
+export function TopUp({ action, amounts }: { action: (amount: number) => Promise<TopUpResult>; amounts: number[] }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [result, setResult] = useState<TopUpResult>();
@@ -100,7 +100,7 @@ export function TopUp() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap gap-2.5">
-        {[20, 50, 100].map((amount) => (
+        {amounts.map((amount) => (
           <Button
             key={amount}
             variant="secondary"
@@ -108,7 +108,7 @@ export function TopUp() {
             onClick={() =>
               start(async () => {
                 setWhich(amount);
-                setResult(await topUp(amount));
+                setResult(await action(amount));
                 router.refresh();
               })
             }

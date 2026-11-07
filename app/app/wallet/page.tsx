@@ -2,6 +2,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { fundMyWallet } from "@/app/actions";
+import { TopUp } from "@/components/sponsor-forms";
 import { PageSpinner } from "@/components/page-spinner";
 import { TopBar } from "@/components/top-bar";
 import { WalletBalance } from "@/components/wallet-balance";
@@ -34,6 +36,15 @@ async function Balance() {
           <WalletBalance address={address} className="text-display-4-medium tracking-[-0.03em] text-radiant" />
         </Suspense>
       </div>
+      {address && (
+        <section aria-labelledby="add" className="flex flex-col gap-3">
+          <h2 id="add" className="text-title-3-medium">Add test USDC</h2>
+          <p className="text-body-regular text-text-secondary">
+            Your sponsor can fill your wallet, and you can add some yourself. On the test network it&apos;s free play money.
+          </p>
+          <TopUp action={fundMyWallet} amounts={[10, 20, 50]} />
+        </section>
+      )}
       {address ? (
         <a
           href={explorer.account(address)}
