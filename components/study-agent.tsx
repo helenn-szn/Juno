@@ -182,7 +182,6 @@ export function StudyAgent({ course, stuckOn }: { course: string; stuckOn: strin
           autoComplete="off"
           className="flex-1"
           {...touchInput}
-          fieldClassName="rounded-full bg-dark-green px-3.5 py-0 border border-separator-border"
         />
         <Button type="submit" iconOnly leadingIcon={RiArrowUpLine} aria-label="Send" disabled={busy || !draft.trim()} className="size-11 shrink-0 rounded-full p-0 shadow-none" />
       </form>

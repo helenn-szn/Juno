@@ -16,7 +16,6 @@ export function CourseSearch({ className }: { className?: string }) {
         placeholder="Search courses"
         leadingIcon={RiSearchLine}
         {...touchInput}
-        fieldClassName="rounded-full border border-line bg-transparent px-3.5 py-0"
       />
     </form>
   );

@@ -18,8 +18,8 @@ import { findUserById, setUpWallet } from "./users";
 export type Sponsorship = {
   id: string;
   sponsorId: string;
-  kind: "invite" | "seat";
-  courseSlug: string;
+  kind: "invite" | "seat" | "direct"; // direct: sent to a learner by her Juno ID
+  courseSlug?: string; // a direct sponsorship follows whatever course she is on
   budget: number; // USDC, moved to the learner's wallet when she joins
   label?: string; // who the invite is for, as the sponsor wrote it
   token?: string; // the invite link
@@ -155,6 +155,19 @@ async function fund(learnerId: string) {
   }
 }
 
+/** The sponsor sent USDC straight to a learner, found by her Juno ID. She becomes (or stays) one of the sponsor's learners. */
+export async function recordDirect(sponsorId: string, learnerId: string, amount: number, tx: string) {
+  await change((doc) => {
+    let s = doc.sponsorships.find((x) => x.sponsorId === sponsorId && x.learnerId === learnerId && x.kind === "direct");
+    if (!s) {
+      s = { id: id(), sponsorId, kind: "direct", budget: 0, learnerId, createdAt: now() };
+      doc.sponsorships.push(s);
+    }
+    s.budget = +(s.budget + amount).toFixed(7);
+    doc.payments.push({ id: `${s.id}-${id()}`, sponsorId, learnerId, kind: "budget", amount, tx, at: now() });
+  });
+}
+
 /** A sponsored learner paid for a mentor review from her own wallet. */
 export async function recordReview(learnerId: string, courseSlug: string, amount: number, tx: string) {
   await change((doc) => {
@@ -174,7 +187,7 @@ export type LearnerRow = {
   id: string;
   name: string;
   courseTitle: string;
-  how: "invited" | "seat";
+  how: "invited" | "seat" | "sent by ID";
   status: "pending" | "funding" | "learning" | "certified";
   percent: number;
   used: number;
@@ -205,19 +218,22 @@ export async function sponsorSummary(sponsorId: string): Promise<SponsorSummary>
   const users = new Map(await Promise.all(learnerIds.map(async (learnerId) => [learnerId, await findUserById(learnerId)] as const)));
   const certificates = new Map(await Promise.all(learnerIds.map(async (learnerId) => [learnerId, await certificatesFor(learnerId)] as const)));
 
+  // A direct sponsorship follows the course she is on now.
+  const slugOf = (s: Sponsorship) => s.courseSlug ?? (s.learnerId ? users.get(s.learnerId)?.startedCourses.at(-1) : undefined);
+
   const learners: LearnerRow[] = mine.map((s) => {
-    const course = findCourse(s.courseSlug)!;
+    const course = slugOf(s) ? findCourse(slugOf(s)!) : undefined;
     const user = s.learnerId ? users.get(s.learnerId) : undefined;
-    const done = user?.modulesDone?.[s.courseSlug] ?? 0;
+    const done = course ? (user?.modulesDone?.[course.slug] ?? 0) : 0;
     const funded = payments.some((p) => p.kind === "budget" && p.learnerId === s.learnerId && s.learnerId);
-    const certified = Boolean(s.learnerId && certificates.get(s.learnerId)?.some((c) => c.courseSlug === s.courseSlug));
+    const certified = Boolean(course && s.learnerId && certificates.get(s.learnerId)?.some((c) => c.courseSlug === course.slug));
     return {
       id: s.id,
       name: user?.name ?? s.label ?? "Invited learner",
-      courseTitle: course.title,
-      how: s.kind === "invite" ? "invited" : "seat",
+      courseTitle: course?.title ?? "No course yet",
+      how: s.kind === "invite" ? "invited" : s.kind === "seat" ? "seat" : "sent by ID",
       status: !s.learnerId ? "pending" : certified ? "certified" : funded ? "learning" : "funding",
-      percent: Math.round((done / course.modules.length) * 100),
+      percent: course ? Math.round((done / course.modules.length) * 100) : 0,
       used: payments.filter((p) => p.kind === "review" && p.learnerId === s.learnerId).reduce((sum, p) => sum + p.amount, 0),
       budget: s.budget,
       token: s.token,
@@ -226,10 +242,13 @@ export async function sponsorSummary(sponsorId: string): Promise<SponsorSummary>
 
   const totalGiven = payments.filter((p) => p.kind === "budget").reduce((sum, p) => sum + p.amount, 0);
   const paidToMentors = payments.filter((p) => p.kind === "review").reduce((sum, p) => sum + p.amount, 0);
-  const coins = mine.reduce((sum, s) => sum + Math.min(s.learnerId ? users.get(s.learnerId)?.modulesDone?.[s.courseSlug] ?? 0 : 0, findCourse(s.courseSlug)!.modules.length), 0);
+  const coins = mine.reduce((sum, s) => {
+    const course = slugOf(s) ? findCourse(slugOf(s)!) : undefined;
+    return sum + (course && s.learnerId ? Math.min(users.get(s.learnerId)?.modulesDone?.[course.slug] ?? 0, course.modules.length) : 0);
+  }, 0);
 
   const earned = mine.flatMap((s) =>
-    s.learnerId ? (certificates.get(s.learnerId) ?? []).filter((c) => c.courseSlug === s.courseSlug && c.transaction).map((c) => ({ c, name: users.get(s.learnerId!)?.name ?? "She" })) : [],
+    s.learnerId ? (certificates.get(s.learnerId) ?? []).filter((c) => c.courseSlug === slugOf(s) && c.transaction).map((c) => ({ c, name: users.get(s.learnerId!)?.name ?? "She" })) : [],
   );
 
   return {

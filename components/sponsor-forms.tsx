@@ -12,8 +12,8 @@ import { courses } from "@/lib/courses";
 import { explorer } from "@/lib/constants";
 
 const field = "flex flex-col gap-1.5 text-body-medium";
-const select =
-  "h-11 rounded-full border border-line bg-white px-3.5 text-body-regular text-text-primary outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring";
+// The native select takes its look from the form-field rule in styles/juno.css.
+const select = "w-full";
 
 function CourseSelect() {
   return (
