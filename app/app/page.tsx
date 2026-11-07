@@ -1,6 +1,7 @@
 // The learner's dashboard: what she's learning, what to try next, her wallet and her coins.
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { RiAddLine } from "@remixicon/react";
 import { ButtonLink } from "@/components/base/buttons/button";
 import { ContinueCard } from "@/components/continue-card";
@@ -13,6 +14,7 @@ import { TopBar } from "@/components/top-bar";
 import { WalletBalance } from "@/components/wallet-balance";
 import { courses } from "@/lib/courses";
 import { fitScore } from "@/lib/profile";
+import { fundPending } from "@/lib/sponsoring";
 import { currentUser } from "@/lib/session";
 
 export default function Dashboard() {
@@ -30,6 +32,8 @@ async function Content() {
   const user = await currentUser();
   if (!user) redirect("/login");
   if (user.role === "sponsor") redirect("/sponsor");
+  // If a sponsor's budget could not be sent earlier, try again now.
+  after(() => fundPending(user.id).catch(() => {}));
 
   const doneOf = (slug: string) => user.modulesDone?.[slug] ?? 0;
   const started = courses.filter((course) => user.startedCourses.includes(course.slug));

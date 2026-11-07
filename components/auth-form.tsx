@@ -28,7 +28,7 @@ const modes = {
 
 const showErrors = ({ validationErrors }: { validationErrors: string[] }) => validationErrors.join(" ");
 
-export function AuthForm({ mode, role = "learner" }: { mode: keyof typeof modes; role?: "learner" | "sponsor" }) {
+export function AuthForm({ mode, role = "learner", invite }: { mode: keyof typeof modes; role?: "learner" | "sponsor"; invite?: { token: string; note: string } }) {
   const sponsor = role === "sponsor" && mode === "signup";
   const m = sponsor ? { ...modes.signup, title: "Create your sponsor account" } : modes[mode];
   const [state, action, pending] = useActionState<FormState, FormData>(m.action, {});
@@ -42,8 +42,10 @@ export function AuthForm({ mode, role = "learner" }: { mode: keyof typeof modes;
 
       <div className="my-auto flex flex-col gap-6">
         <h1 className="text-title-1-medium">{m.title}</h1>
+        {invite && <p className="rounded-2xl bg-green px-4 py-3 text-copy-sm text-mint">{invite.note}</p>}
         <Form action={action} validationBehavior="aria" validationErrors={state.errors} className="flex flex-col gap-4">
           {sponsor && <input type="hidden" name="role" value="sponsor" />}
+          {invite && <input type="hidden" name="invite" value={invite.token} />}
           {mode === "signup" && (
             <Input
               name="name"

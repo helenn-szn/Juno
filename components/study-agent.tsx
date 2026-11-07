@@ -41,12 +41,12 @@ function Resource({ title, url }: { title: string; url: string }) {
 }
 
 /** The offer for a paid mentor review. Nothing is paid until she taps Book review. */
-function Offer({ reason }: { reason: string }) {
+function Offer({ reason, course }: { reason: string; course: string }) {
   const [state, setState] = useState<"asking" | "paying" | "declined" | Payment>("asking");
 
   async function book() {
     setState("paying");
-    const res = await fetch("/api/pay", { method: "POST" }).catch(() => null);
+    const res = await fetch("/api/pay", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ course }) }).catch(() => null);
     setState((await res?.json().catch(() => null)) ?? { ok: false, reason: "failed" });
   }
 
@@ -131,7 +131,7 @@ export function StudyAgent({ course, stuckOn }: { course: string; stuckOn: strin
                   return <Resource key={index} {...(part.output as { title: string; url: string })} />;
                 }
                 if (part.type === "tool-offerPaidHelp" && part.state === "output-available") {
-                  return <Offer key={index} reason={(part.output as { reason: string }).reason} />;
+                  return <Offer key={index} reason={(part.output as { reason: string }).reason} course={course} />;
                 }
                 return null;
               })}
