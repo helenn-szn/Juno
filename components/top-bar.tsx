@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { RiArrowLeftLine } from "@remixicon/react";
 import { AccountMenu } from "@/components/account-menu";
@@ -22,7 +22,7 @@ async function Account() {
  * The bar at the top of every app screen: a title (with a back button on
  * Course details), an optional course search, and her account menu.
  */
-export function TopBar({ title, back, search = false }: { title: string; back?: { href: string; label: string }; search?: boolean }) {
+export function TopBar({ title, back, search = false, before }: { title: string; back?: { href: string; label: string }; search?: boolean; before?: ReactNode }) {
   return (
     <header className="flex flex-wrap items-center gap-3 border-b border-line px-6 py-5 lg:px-7">
       {back ? (
@@ -40,6 +40,7 @@ export function TopBar({ title, back, search = false }: { title: string; back?: 
       )}
       <h1 className="me-auto min-w-0 truncate text-title-1-medium tracking-[-0.03em]">{title}</h1>
       {search && <CourseSearch className="order-last sm:order-none sm:w-75" />}
+      {before}
       <ConnectWallet />
       <Suspense fallback={<span className="size-11 rounded-full border border-separator-border" aria-hidden />}>
         <Bell />

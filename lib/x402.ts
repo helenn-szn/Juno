@@ -39,9 +39,9 @@ export type Payment =
   | { ok: false; reason: "setup" | "low-balance" | "failed" };
 
 // `payerSecret` is the learner's own wallet; without it the shared demo wallet pays.
-export async function payForMentorReview(url: string | URL, payerSecret?: string): Promise<Payment> {
+export async function payForMentorReview(url: string | URL, payerSecret?: string, price = Number(MENTOR_REVIEW_PRICE)): Promise<Payment> {
   try {
-    return await pay(url, payerSecret);
+    return await pay(url, payerSecret, price);
   } catch (error) {
     // A network hiccup should read as a friendly "try again", never a server error.
     console.error("Mentor review payment error:", error);
@@ -49,10 +49,10 @@ export async function payForMentorReview(url: string | URL, payerSecret?: string
   }
 }
 
-async function pay(url: string | URL, payerSecret?: string): Promise<Payment> {
+async function pay(url: string | URL, payerSecret: string | undefined, price: number): Promise<Payment> {
   const learner = payerSecret ? Keypair.fromSecret(payerSecret) : wallet("learner");
   if (!learner) return { ok: false, reason: "setup" };
-  if ((await usdcBalance(learner.publicKey())) < Number(MENTOR_REVIEW_PRICE)) {
+  if ((await usdcBalance(learner.publicKey())) < price) {
     return { ok: false, reason: "low-balance" };
   }
 

@@ -4,6 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   RiAwardLine,
+  RiCheckLine,
+  RiInboxLine,
+  RiPriceTag3Line,
+  RiTimeLine,
+  RiUserLine,
   RiBookOpenLine,
   RiGroupLine,
   RiLayoutGridLine,
@@ -25,6 +30,18 @@ const sponsorItems: Item[] = [
   { href: "/sponsor/fund", label: "Wallet", icon: RiWalletLine },
 ];
 
+// A mentor's menu. The middle ones jump to a part of the Requests page.
+const mentorItems: Item[] = [
+  { href: "/app", label: "Requests", icon: RiInboxLine, exact: true },
+  { href: "/app#progress", label: "In progress", short: "Progress", icon: RiTimeLine },
+  { href: "/app#done", label: "Reviews done", short: "Done", icon: RiCheckLine },
+  { href: "/app#earnings", label: "Earnings", icon: RiWalletLine },
+  { href: "/app/prices", label: "Prices", icon: RiPriceTag3Line },
+  { href: "/app/profile", label: "Profile", icon: RiUserLine },
+];
+
+type Role = "learner" | "sponsor" | "mentor";
+
 const learnerItems: Item[] = [
   { href: "/app", label: "Dashboard", icon: RiLayoutGridLine, exact: true },
   { href: "/app/courses", label: "Courses", icon: RiBookOpenLine },
@@ -34,17 +51,17 @@ const learnerItems: Item[] = [
   { href: "/app/settings", label: "Settings", icon: RiSettings3Line },
 ];
 
-function useNav(role: "learner" | "sponsor") {
+function useNav(role: Role) {
   const pathname = usePathname();
   // A link to a part of a page (with a #) is never "current"; the page's own link is.
   const active = (item: Item) => (item.exact ? pathname === item.href : !item.href.includes("#") && pathname.startsWith(item.href));
-  return { items: role === "sponsor" ? sponsorItems : learnerItems, active };
+  return { items: role === "sponsor" ? sponsorItems : role === "mentor" ? mentorItems : learnerItems, active };
 }
 
 const ring = "outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring";
 
 /** The left sidebar links, on desktop. */
-export function SidebarLinks({ role = "learner" }: { role?: "learner" | "sponsor" }) {
+export function SidebarLinks({ role = "learner", badge = 0 }: { role?: Role; badge?: number }) {
   const { items, active } = useNav(role);
   return (
     <nav aria-label="Main" className="flex flex-col gap-1">
@@ -60,7 +77,13 @@ export function SidebarLinks({ role = "learner" }: { role?: "learner" | "sponsor
           )}
         >
           <item.icon className="size-[18px]" aria-hidden />
-          {item.label}
+          <span className="flex-1">{item.label}</span>
+          {item.label === "Requests" && badge > 0 && (
+            <span className="rounded-full bg-radiant px-2 py-0.5 text-body-2-medium text-dark-green">
+              {badge}
+              <span className="sr-only"> new</span>
+            </span>
+          )}
         </Link>
       ))}
     </nav>
@@ -68,7 +91,7 @@ export function SidebarLinks({ role = "learner" }: { role?: "learner" | "sponsor
 }
 
 /** The bottom tab bar, on phones. */
-export function TabBar({ role = "learner" }: { role?: "learner" | "sponsor" }) {
+export function TabBar({ role = "learner", badge = 0 }: { role?: Role; badge?: number }) {
   const { items, active } = useNav(role);
   return (
     <nav
@@ -86,7 +109,12 @@ export function TabBar({ role = "learner" }: { role?: "learner" | "sponsor" }) {
             active(item) ? "text-green" : "text-text-secondary",
           )}
         >
-          <item.icon className="size-5" aria-hidden />
+          <span className="relative">
+            <item.icon className="size-5" aria-hidden />
+            {item.label === "Requests" && badge > 0 && (
+              <span className="absolute -end-2.5 -top-1.5 rounded-full bg-radiant px-1.5 text-[10px] leading-4 text-dark-green">{badge}</span>
+            )}
+          </span>
           <span className="max-w-full truncate">{item.short ?? item.label}</span>
         </Link>
       ))}

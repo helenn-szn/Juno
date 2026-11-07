@@ -8,7 +8,7 @@ import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
 import { Spinner } from "@/components/base/spinner/spinner";
 import { touchInput } from "@/components/touch-input";
-import { MENTOR_REVIEW_PRICE, explorer } from "@/lib/constants";
+import { explorer } from "@/lib/constants";
 import type { Payment } from "@/lib/x402";
 
 const GREETING = "Hi! Tell me where you're stuck and I'll find free help first.";
@@ -41,16 +41,27 @@ function Resource({ title, url }: { title: string; url: string }) {
 }
 
 /** The offer for a paid mentor review. Nothing is paid until she taps Book review. */
-function Offer({ reason, course }: { reason: string; course: string }) {
-  const [state, setState] = useState<"asking" | "paying" | "declined" | Payment>("asking");
+type Sent = { ok: true; requested: true; mentor: string; price: number };
+
+function Offer({ reason, course, price, mentor }: { reason: string; course: string; price: string; mentor?: string }) {
+  const [state, setState] = useState<"asking" | "paying" | "declined" | Payment | Sent>("asking");
 
   async function book() {
     setState("paying");
-    const res = await fetch("/api/pay", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ course }) }).catch(() => null);
+    const res = await fetch("/api/pay", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ course, reason }) }).catch(() => null);
     setState((await res?.json().catch(() => null)) ?? { ok: false, reason: "failed" });
   }
 
   if (state === "declined") return <p className={bubble}>No problem. I&apos;m here whenever you want a mentor.</p>;
+
+  // A real mentor has the request. Nothing is charged until she accepts.
+  if (typeof state === "object" && state.ok && "requested" in state) {
+    return (
+      <p aria-live="polite" className={bubble}>
+        Request sent to {state.mentor}. You only pay {state.price.toFixed(2)} USDC if she accepts, and she has 24 hours to answer. I&apos;ll tell you when she does.
+      </p>
+    );
+  }
 
   if (typeof state === "object" && state.ok) {
     return (
@@ -72,11 +83,11 @@ function Offer({ reason, course }: { reason: string; course: string }) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl bg-dark-green p-4">
       <p className="text-copy-sm">
-        {reason} A mentor review costs {MENTOR_REVIEW_PRICE} USDC from your wallet. Book it?
+        {reason} {mentor ? `${mentor} can review it for` : "A mentor review costs"} {price} USDC from your wallet. Book it?
       </p>
       <div className="flex gap-2">
         <Button onClick={book} disabled={paying} className="h-11 flex-1 rounded-full shadow-none">
-          {paying ? "Paying mentor…" : typeof state === "object" ? "Try again" : "Book review"}
+          {paying ? "Booking…" : typeof state === "object" ? "Try again" : "Book review"}
         </Button>
         <Button variant="secondary" onClick={() => setState("declined")} disabled={paying} className="h-11 flex-1 rounded-full border-radiant bg-transparent text-radiant shadow-none">
           Not now
@@ -85,10 +96,10 @@ function Offer({ reason, course }: { reason: string; course: string }) {
       <div aria-live="polite">
         {paying && (
           <div className="flex items-center gap-2 text-body-regular text-text-secondary">
-            <Spinner size="sm" aria-label="Paying" /> This can take up to a minute.
+            <Spinner size="sm" aria-label="Booking" /> This can take a moment.
           </div>
         )}
-        {typeof state === "object" && !state.ok && <p className="text-body-regular text-text-error-primary">{problems[state.reason]}</p>}
+        {typeof state === "object" && !state.ok && "reason" in state && <p className="text-body-regular text-text-error-primary">{problems[state.reason]}</p>}
       </div>
     </div>
   );
@@ -131,7 +142,7 @@ export function StudyAgent({ course, stuckOn }: { course: string; stuckOn: strin
                   return <Resource key={index} {...(part.output as { title: string; url: string })} />;
                 }
                 if (part.type === "tool-offerPaidHelp" && part.state === "output-available") {
-                  return <Offer key={index} reason={(part.output as { reason: string }).reason} course={course} />;
+                  return <Offer key={index} course={course} {...(part.output as { reason: string; price: string; mentor?: string })} />;
                 }
                 return null;
               })}
