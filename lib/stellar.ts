@@ -61,3 +61,26 @@ export async function usdcBalanceOrZero(address: string): Promise<number> {
     return 0;
   }
 }
+
+// Sends USDC from one wallet to another. Returns the transaction hash.
+export const sendUsdc = (from: Keypair, to: string, amount: number) =>
+  submit(from, Operation.payment({ destination: to, asset: USDC, amount: amount.toFixed(7) }));
+
+// Buys testnet USDC with the wallet's free test XLM on Stellar's built-in exchange.
+// This is how a sponsor "tops up" on the test network. Returns the transaction hash.
+export async function buyUsdc(wallet: Keypair, amount: number) {
+  const quote = await horizon.strictReceivePaths([Asset.native()], USDC, amount.toFixed(7)).call();
+  if (!quote.records.length) throw new Error("no-liquidity");
+  const sendMax = (Number(quote.records[0].source_amount) * 1.1).toFixed(7);
+  return submit(
+    wallet,
+    Operation.pathPaymentStrictReceive({
+      sendAsset: Asset.native(),
+      sendMax,
+      destination: wallet.publicKey(),
+      destAsset: USDC,
+      destAmount: amount.toFixed(7),
+      path: [],
+    }),
+  );
+}

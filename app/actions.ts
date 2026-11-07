@@ -7,6 +7,7 @@ import { after } from "next/server";
 import { issueCertificate, recordOnStellar } from "@/lib/certificates";
 import { findCourse, requiredLessons } from "@/lib/courses";
 import { profileSchema } from "@/lib/profile";
+import { claimSeat, findInvite, fundPending, linkInvite } from "@/lib/sponsoring";
 import { currentUser, endSession, startSession } from "@/lib/session";
 import { checkPassword, createUser, findUserByEmail, setUpWallet, updateUser } from "@/lib/users";
 
@@ -17,8 +18,16 @@ function field(form: FormData, name: string) {
 }
 
 // Opens her wallet after the response is sent, so sign-up never waits on Stellar.
+// Once it is open, any sponsor's budget waiting for her is sent.
 function setUpWalletLater(userId: string) {
-  after(() => setUpWallet(userId).catch((error) => console.error("Wallet set-up failed:", error)));
+  after(async () => {
+    try {
+      await setUpWallet(userId);
+      await fundPending(userId);
+    } catch (error) {
+      console.error("Wallet set-up failed:", error);
+    }
+  });
 }
 
 export async function signUp(_: FormState, form: FormData): Promise<FormState> {
@@ -36,8 +45,11 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
   const role = form.get("role") === "sponsor" ? "sponsor" : "learner";
   const user = await createUser(name, email, password, role);
   await startSession(user.id);
+  // Signed up through a sponsor's invite link: she is that sponsor's learner.
+  const invite = role === "learner" ? await findInvite(String(form.get("invite") ?? "")) : undefined;
+  if (invite?.token) await linkInvite(invite.token, user.id);
   setUpWalletLater(user.id);
-  redirect(role === "sponsor" ? "/sponsor" : "/app");
+  redirect(role === "sponsor" ? "/sponsor" : invite ? `/app/courses/${invite.courseSlug}` : "/app");
 }
 
 export async function logIn(_: FormState, form: FormData): Promise<FormState> {
@@ -47,7 +59,7 @@ export async function logIn(_: FormState, form: FormData): Promise<FormState> {
     return { errors: { password: "That email and password don't match." }, values: { email } };
   }
   await startSession(user.id);
-  if (!user.wallet) setUpWalletLater(user.id); // in case set-up failed at sign-up
+  setUpWalletLater(user.id); // opens her wallet if sign-up could not, and sends any waiting budget
   redirect(user.role === "sponsor" ? "/sponsor" : "/app");
 }
 
@@ -65,6 +77,9 @@ export async function startCourse(slug: string) {
   if (!user.startedCourses.includes(slug)) {
     await updateUser(user.id, (u) => ({ ...u, startedCourses: [...u.startedCourses, slug] }));
   }
+  // A sponsor may have paid for seats in this course: if one is free, it is hers.
+  await claimSeat(user.id, slug);
+  after(() => fundPending(user.id).catch((error) => console.error("Sponsored budget failed:", error)));
   redirect(`/app/courses/${slug}/learn`);
 }
 

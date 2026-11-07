@@ -5,14 +5,27 @@ import { usePathname } from "next/navigation";
 import {
   RiAwardLine,
   RiBookOpenLine,
+  RiGroupLine,
   RiLayoutGridLine,
+  RiListCheck,
   RiPlayCircleLine,
   RiSettings3Line,
   RiWalletLine,
 } from "@remixicon/react";
 import { cx } from "@/utils/cx";
 
-const items = [
+type Item = { href: string; label: string; short?: string; icon: typeof RiLayoutGridLine; exact?: boolean };
+
+// A sponsor's menu. The first three jump to a part of the Overview page.
+const sponsorItems: Item[] = [
+  { href: "/sponsor", label: "Overview", icon: RiLayoutGridLine, exact: true },
+  { href: "/sponsor#learners", label: "Learners", icon: RiGroupLine },
+  { href: "/sponsor#seats", label: "Course seats", short: "Seats", icon: RiBookOpenLine },
+  { href: "/sponsor#payments", label: "Payments", icon: RiListCheck },
+  { href: "/sponsor/fund", label: "Wallet", icon: RiWalletLine },
+];
+
+const learnerItems: Item[] = [
   { href: "/app", label: "Dashboard", icon: RiLayoutGridLine, exact: true },
   { href: "/app/courses", label: "Courses", icon: RiBookOpenLine },
   { href: "/app/learning", label: "My learning", short: "Learning", icon: RiPlayCircleLine },
@@ -21,16 +34,18 @@ const items = [
   { href: "/app/settings", label: "Settings", icon: RiSettings3Line },
 ];
 
-function useActive() {
+function useNav(role: "learner" | "sponsor") {
   const pathname = usePathname();
-  return (item: (typeof items)[number]) => (item.exact ? pathname === item.href : pathname.startsWith(item.href));
+  // A link to a part of a page (with a #) is never "current"; the page's own link is.
+  const active = (item: Item) => (item.exact ? pathname === item.href : !item.href.includes("#") && pathname.startsWith(item.href));
+  return { items: role === "sponsor" ? sponsorItems : learnerItems, active };
 }
 
 const ring = "outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring";
 
 /** The left sidebar links, on desktop. */
-export function SidebarLinks() {
-  const active = useActive();
+export function SidebarLinks({ role = "learner" }: { role?: "learner" | "sponsor" }) {
+  const { items, active } = useNav(role);
   return (
     <nav aria-label="Main" className="flex flex-col gap-1">
       {items.map((item) => (
@@ -53,8 +68,8 @@ export function SidebarLinks() {
 }
 
 /** The bottom tab bar, on phones. */
-export function TabBar() {
-  const active = useActive();
+export function TabBar({ role = "learner" }: { role?: "learner" | "sponsor" }) {
+  const { items, active } = useNav(role);
   return (
     <nav
       aria-label="Main"

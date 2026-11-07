@@ -8,6 +8,7 @@
 // Buyer side: `payForMentorReview` is Ada's agent paying from her wallet.
 // It runs on the server because a browser can't sign Stellar payments alone.
 import "server-only";
+import { Keypair } from "@stellar/stellar-sdk";
 import { x402Facilitator } from "@x402/core/facilitator";
 import type { SupportedResponse } from "@x402/core/types";
 import { decodePaymentResponseHeader, wrapFetchWithPaymentFromConfig } from "@x402/fetch";
@@ -37,9 +38,10 @@ export type Payment =
   | { ok: true; transaction: string; review: { mentor: string; message: string } }
   | { ok: false; reason: "setup" | "low-balance" | "failed" };
 
-export async function payForMentorReview(url: string | URL): Promise<Payment> {
+// `payerSecret` is the learner's own wallet; without it the shared demo wallet pays.
+export async function payForMentorReview(url: string | URL, payerSecret?: string): Promise<Payment> {
   try {
-    return await pay(url);
+    return await pay(url, payerSecret);
   } catch (error) {
     // A network hiccup should read as a friendly "try again", never a server error.
     console.error("Mentor review payment error:", error);
@@ -47,8 +49,8 @@ export async function payForMentorReview(url: string | URL): Promise<Payment> {
   }
 }
 
-async function pay(url: string | URL): Promise<Payment> {
-  const learner = wallet("learner");
+async function pay(url: string | URL, payerSecret?: string): Promise<Payment> {
+  const learner = payerSecret ? Keypair.fromSecret(payerSecret) : wallet("learner");
   if (!learner) return { ok: false, reason: "setup" };
   if ((await usdcBalance(learner.publicKey())) < Number(MENTOR_REVIEW_PRICE)) {
     return { ok: false, reason: "low-balance" };
