@@ -17,6 +17,7 @@ export type User = {
   name: string;
   email: string;
   passwordHash: string;
+  role?: "learner" | "sponsor"; // sponsors fund learners; no role means learner
   createdAt: string;
   startedCourses: string[];
   profile?: Profile; // her answers before the first course: experience, goal and schedule
@@ -58,12 +59,13 @@ export async function findUserByEmail(email: string) {
   return (await readFile()).find((user) => user.email === address);
 }
 
-export async function createUser(name: string, email: string, password: string): Promise<User> {
+export async function createUser(name: string, email: string, password: string, role: "learner" | "sponsor" = "learner"): Promise<User> {
   const user: User = {
     id: crypto.randomUUID(),
     name,
     email: email.toLowerCase(),
     passwordHash: hashPassword(password),
+    role,
     createdAt: new Date().toISOString(),
     startedCourses: [],
   };

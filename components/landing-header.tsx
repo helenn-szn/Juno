@@ -8,6 +8,7 @@ import { cx } from "@/utils/cx";
 
 const links = [
   { href: "#how", label: "How it works" },
+  { href: "#courses", label: "Courses" },
   { href: "#who", label: "Who it's for" },
   { href: "#work", label: "Skills to work" },
 ];

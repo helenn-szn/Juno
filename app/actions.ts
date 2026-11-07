@@ -33,10 +33,11 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
   if (password.length < 8) errors.password = "Use at least 8 characters.";
   if (Object.keys(errors).length) return { errors, values: { name, email } };
 
-  const user = await createUser(name, email, password);
+  const role = form.get("role") === "sponsor" ? "sponsor" : "learner";
+  const user = await createUser(name, email, password, role);
   await startSession(user.id);
   setUpWalletLater(user.id);
-  redirect("/app");
+  redirect(role === "sponsor" ? "/sponsor" : "/app");
 }
 
 export async function logIn(_: FormState, form: FormData): Promise<FormState> {
@@ -47,7 +48,7 @@ export async function logIn(_: FormState, form: FormData): Promise<FormState> {
   }
   await startSession(user.id);
   if (!user.wallet) setUpWalletLater(user.id); // in case set-up failed at sign-up
-  redirect("/app");
+  redirect(user.role === "sponsor" ? "/sponsor" : "/app");
 }
 
 export async function logOut() {
