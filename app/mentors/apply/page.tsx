@@ -22,10 +22,12 @@ export default function Apply() {
 
 async function Form() {
   const user = await currentUser();
-  if (user && (user.role !== "mentor" || user.mentor?.status !== "changes")) redirect("/app");
+  if (user && (user.role !== "mentor" || (user.mentor && user.mentor.status !== "changes"))) redirect("/app");
   const mentor = user?.mentor;
   const initial: ApplyInitial | undefined =
-    user && mentor
+    user && !mentor
+      ? { signedIn: true, name: user.name, email: user.email, country: "", bio: "", link: "", courses: [], prices: {} }
+      : user && mentor
       ? { signedIn: true, name: user.name, email: user.email, country: mentor.country, bio: mentor.bio, link: mentor.link, courses: mentor.courses, prices: mentor.prices, note: mentor.note }
       : undefined;
   return <MentorApplyForm initial={initial} />;

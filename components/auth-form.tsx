@@ -28,9 +28,10 @@ const modes = {
 
 const showErrors = ({ validationErrors }: { validationErrors: string[] }) => validationErrors.join(" ");
 
-export function AuthForm({ mode, role = "learner", invite }: { mode: keyof typeof modes; role?: "learner" | "sponsor"; invite?: { token: string; note: string } }) {
+export function AuthForm({ mode, role = "learner", invite }: { mode: keyof typeof modes; role?: "learner" | "sponsor" | "mentor"; invite?: { token: string; note: string } }) {
   const sponsor = role === "sponsor" && mode === "signup";
-  const m = sponsor ? { ...modes.signup, title: "Create your sponsor account" } : modes[mode];
+  const mentor = role === "mentor" && mode === "signup";
+  const m = sponsor ? { ...modes.signup, title: "Create your sponsor account" } : mentor ? { ...modes.signup, title: "Create your mentor account" } : modes[mode];
   const [state, action, pending] = useActionState<FormState, FormData>(m.action, {});
 
   return (
@@ -42,14 +43,15 @@ export function AuthForm({ mode, role = "learner", invite }: { mode: keyof typeo
 
       <div className="my-auto flex flex-col gap-6">
         <h1 className="text-title-1-medium">{m.title}</h1>
+        {mentor && <p className="text-copy-sm text-text-secondary">Next you&apos;ll tell us about your skills and set your prices. It takes about 5 minutes.</p>}
         {invite && <p className="rounded-2xl bg-green px-4 py-3 text-copy-sm text-mint">{invite.note}</p>}
         <Form action={action} validationBehavior="aria" validationErrors={state.errors} className="flex flex-col gap-4">
-          {sponsor && <input type="hidden" name="role" value="sponsor" />}
+          {(sponsor || mentor) && <input type="hidden" name="role" value={role} />}
           {invite && <input type="hidden" name="invite" value={invite.token} />}
           {mode === "signup" && (
             <Input
               name="name"
-              label={sponsor ? "Name or organisation" : "Name"}
+              label={sponsor ? "Name or organisation" : mentor ? "Full name" : "Name"}
               autoComplete="name"
               isRequired
               defaultValue={state.values?.name}

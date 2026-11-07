@@ -38,8 +38,8 @@ async function Home() {
   if (!user) redirect("/login");
   if (user.role === "sponsor") redirect("/sponsor");
   if (user.role === "admin") redirect("/admin");
-  if (user.role === "mentor" && user.mentor) {
-    if (user.mentor.status === "changes") redirect("/mentors/apply");
+  if (user.role === "mentor") {
+    if (!user.mentor || user.mentor.status === "changes") redirect("/mentors/apply");
     return user.mentor.status === "approved" ? <MentorHome user={user} /> : <MentorUnderReview user={user} />;
   }
   return (

@@ -9,6 +9,7 @@ import type { FormState } from "@/app/actions";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
 import { CoinFan } from "@/components/coin-fan";
+import { CountrySelect } from "@/components/country-select";
 import { PriceRows, tints } from "@/components/price-rows";
 import { touchInput } from "@/components/touch-input";
 import { courses } from "@/lib/courses";
@@ -64,7 +65,7 @@ export function MentorApplyForm({ initial = blank }: { initial?: ApplyInitial })
   const problems = Object.fromEntries(FORMAT_KEYS.map((f) => [f, offer[f] ? (priceProblem(f, price[f]) ?? state.errors?.[`price_${f}`]) : undefined]));
   const anyOffer = FORMAT_KEYS.some((f) => offer[f]);
   const done = [
-    initial.signedIn || Boolean(name.trim() && /^\S+@\S+\.\S+$/.test(email) && password.length >= 8 && country.trim()),
+    Boolean(country) && (initial.signedIn || Boolean(name.trim() && /^\S+@\S+\.\S+$/.test(email) && password.length >= 8)),
     picked.length > 0 && bio.trim().length >= 20 && /^https?:\/\//.test(link),
     anyOffer && FORMAT_KEYS.every((f) => !problems[f]),
     promises.reply && promises.teach,
@@ -129,10 +130,10 @@ export function MentorApplyForm({ initial = blank }: { initial?: ApplyInitial })
               <Input name="name" label="Full name" autoComplete="name" isRequired value={name} onChange={setName} errorMessage={showErrors} {...touchInput} />
               <Input name="email" type="email" label="Email" autoComplete="email" isRequired value={email} onChange={setEmail} errorMessage={showErrors} {...touchInput} />
               <Input name="password" type="password" label="Password" autoComplete="new-password" isRequired value={password} onChange={setPassword} errorMessage={showErrors} {...touchInput} />
-              <Input name="country" label="Country" autoComplete="country-name" isRequired value={country} onChange={setCountry} errorMessage={showErrors} {...touchInput} />
+              <CountrySelect value={country} onChange={setCountry} error={state.errors?.country} />
             </div>
           )}
-          {initial.signedIn && <Input name="country" label="Country" autoComplete="country-name" isRequired value={country} onChange={setCountry} errorMessage={showErrors} {...touchInput} />}
+          {initial.signedIn && <CountrySelect value={country} onChange={setCountry} error={state.errors?.country} />}
         </section>
 
         <section id="skills" className={cx(card, "scroll-mt-6")}>
