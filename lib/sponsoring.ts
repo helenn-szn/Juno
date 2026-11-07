@@ -12,6 +12,7 @@ import { Keypair } from "@stellar/stellar-sdk";
 import { Redis } from "@upstash/redis";
 import { certificatesFor } from "./certificates";
 import { findCourse } from "./courses";
+import { notify, usdc } from "./notifications";
 import { sendUsdc, usdcBalanceOrZero } from "./stellar";
 import { findUserById, setUpWallet } from "./users";
 
@@ -80,6 +81,12 @@ export async function addSeats(sponsorId: string, courseSlug: string, seats: num
 
 export async function recordTopUp(sponsorId: string, amount: number, tx: string) {
   await change((doc) => void doc.payments.push({ id: id(), sponsorId, kind: "topup", amount, tx, at: now() }));
+  await notify(sponsorId, { kind: "funded", title: "Wallet topped up", text: `You added ${usdc(amount)} to your wallet.`, tx });
+}
+
+/** Everyone who sponsors this learner. */
+export async function sponsorsOf(learnerId: string) {
+  return [...new Set((await load()).sponsorships.filter((s) => s.learnerId === learnerId).map((s) => s.sponsorId))];
 }
 
 export async function findInvite(token: string) {
@@ -103,24 +110,36 @@ export async function committedBudget(sponsorId: string) {
 /** A new learner signed up through an invite link: she is now that sponsor's learner. */
 export async function linkInvite(token: string, learnerId: string) {
   let linked = false;
+  let sponsorId = "";
   await change((doc) => {
     const invite = doc.sponsorships.find((s) => s.token === token && !s.learnerId);
     if (invite) {
       invite.learnerId = learnerId;
+      sponsorId = invite.sponsorId;
       linked = true;
     }
   });
+  if (linked) {
+    const learner = await findUserById(learnerId);
+    await notify(sponsorId, { kind: "info", title: "A learner joined", text: `${learner?.name.split(" ")[0] ?? "She"} created her account through your invite.`, href: "/sponsor#learners" });
+  }
   return linked;
 }
 
 /** She starts a course that has free sponsored seats: the first free seat is hers. */
 export async function claimSeat(learnerId: string, courseSlug: string) {
+  let sponsorId = "";
   await change((doc) => {
     if (doc.sponsorships.some((s) => s.learnerId === learnerId && s.courseSlug === courseSlug)) return;
     const pool = doc.pools.find((p) => p.courseSlug === courseSlug && doc.sponsorships.filter((s) => s.poolId === p.id).length < p.seats);
     if (!pool) return;
+    sponsorId = pool.sponsorId;
     doc.sponsorships.push({ id: id(), sponsorId: pool.sponsorId, kind: "seat", courseSlug, budget: pool.budget, poolId: pool.id, learnerId, createdAt: now() });
   });
+  if (sponsorId) {
+    const learner = await findUserById(learnerId);
+    await notify(sponsorId, { kind: "info", title: "A seat was taken", text: `${learner?.name.split(" ")[0] ?? "A learner"} took a seat in ${findCourse(courseSlug)?.title ?? "your course"}.`, href: "/sponsor#seats" });
+  }
 }
 
 /** Sends the budget of every sponsorship this learner has that hasn't been sent yet. */
@@ -149,10 +168,18 @@ async function fund(learnerId: string) {
     try {
       const tx = await sendUsdc(Keypair.fromSecret(sponsor.wallet.secret), learner.wallet.publicKey, s.budget);
       await change((d) => void d.payments.push({ id: `${s.id}-${id()}`, sponsorId: s.sponsorId, learnerId, kind: "budget", amount: s.budget, tx, at: now() }));
+      await tellBudgetSent(s.sponsorId, learner.name, learnerId, s.budget, tx);
     } catch (error) {
       console.error("Could not send a sponsored budget:", error);
     }
   }
+}
+
+// Both sides hear about it when a budget lands in a learner's wallet.
+async function tellBudgetSent(sponsorId: string, learnerName: string, learnerId: string, amount: number, tx: string) {
+  const sponsor = await findUserById(sponsorId);
+  await notify(learnerId, { kind: "paid", title: "Your wallet was funded", text: `${sponsor?.name ?? "Your sponsor"} sent ${usdc(amount)} to your wallet. Happy learning!`, tx, href: "/app/wallet" });
+  await notify(sponsorId, { kind: "paid", title: "Budget sent", text: `${usdc(amount)} reached ${learnerName.split(" ")[0]}'s wallet.`, tx, href: "/sponsor#payments" });
 }
 
 /** The sponsor sent USDC straight to a learner, found by her Juno ID. She becomes (or stays) one of the sponsor's learners. */
@@ -166,14 +193,24 @@ export async function recordDirect(sponsorId: string, learnerId: string, amount:
     s.budget = +(s.budget + amount).toFixed(7);
     doc.payments.push({ id: `${s.id}-${id()}`, sponsorId, learnerId, kind: "budget", amount, tx, at: now() });
   });
+  const learner = await findUserById(learnerId);
+  await tellBudgetSent(sponsorId, learner?.name ?? "She", learnerId, amount, tx);
 }
 
 /** A sponsored learner paid for a mentor review from her own wallet. */
 export async function recordReview(learnerId: string, courseSlug: string, amount: number, tx: string) {
+  let sponsorId = "";
   await change((doc) => {
     const s = doc.sponsorships.find((x) => x.learnerId === learnerId && x.courseSlug === courseSlug) ?? doc.sponsorships.find((x) => x.learnerId === learnerId);
-    if (s) doc.payments.push({ id: id(), sponsorId: s.sponsorId, learnerId, kind: "review", amount, tx, at: now() });
+    if (s) {
+      doc.payments.push({ id: id(), sponsorId: s.sponsorId, learnerId, kind: "review", amount, tx, at: now() });
+      sponsorId = s.sponsorId;
+    }
   });
+  if (sponsorId) {
+    const learner = await findUserById(learnerId);
+    await notify(sponsorId, { kind: "paid", title: "A mentor was paid", text: `${learner?.name.split(" ")[0] ?? "A learner"} paid a mentor review (${usdc(amount)}).`, tx, href: "/sponsor#payments" });
+  }
 }
 
 /** Does this learner have a sponsor who has already sent her budget? */

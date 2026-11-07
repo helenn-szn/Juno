@@ -22,6 +22,7 @@ export type User = {
   startedCourses: string[];
   profile?: Profile; // her answers before the first course: experience, goal and schedule
   avatar?: string; // link to her profile picture
+  notificationsSeenAt?: string; // when she last opened the bell; newer notifications are "new"
   junoId?: string; // her short, shareable ID, like JN-7K2Q9 (learners only)
   modulesDone?: Record<string, number>; // finished modules per course slug
   lessonsDone?: Record<string, number[]>; // finished lessons of her current module, per course slug
